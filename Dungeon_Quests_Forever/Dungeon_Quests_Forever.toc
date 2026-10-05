@@ -1,0 +1,74 @@
+## Interface: 11508, 11509, 11601, 16001
+## Title: Dungeon Quests (Forever)
+## Notes: Tracks every dungeon quest and pre-quest, step by step
+## Title-frFR: Dungeon Quests (Forever)
+## Notes-frFR: Suit toutes les quêtes et préquêtes de donjon, étape par étape
+## Author: Daeler
+## Version: 0.2.4
+## Category: Daeler Addons
+## X-Category: Quests
+## IconTexture: Interface\AddOns\Dungeon_Quests_Forever\Media\icon_small
+## SavedVariablesPerCharacter: DQF_DB
+## OptionalDeps: Questie, TomTom
+
+# Core: event bus, data model, progress
+Core\Core.lua
+Core\Progress.lua
+
+# Optional integrations
+Integrations\Questie.lua
+
+# Dungeon guides (one file per dungeon, prefixed by level range)
+Guides\Dungeons\13-18_HallOfThanes.lua
+Guides\Dungeons\13-18_RagefireChasm.lua
+Guides\Dungeons\15-20_RuinsOfLordaeron.lua
+Guides\Dungeons\17-24_WailingCaverns.lua
+Guides\Dungeons\17-26_Deadmines.lua
+Guides\Dungeons\22-30_ShadowfangKeep.lua
+Guides\Dungeons\24-29_Excavations.lua
+Guides\Dungeons\24-32_BlackfathomDeeps.lua
+Guides\Dungeons\24-32_StormwindStockade.lua
+Guides\Dungeons\28-33_CityOfDalaran.lua
+Guides\Dungeons\29-38_Gnomeregan.lua
+Guides\Dungeons\29-38_RazorfenKraul.lua
+Guides\Dungeons\30-46_ScarletMonasteryShared.lua
+Guides\Dungeons\30-38_SMGraveyard.lua
+Guides\Dungeons\33-41_SMLibrary.lua
+Guides\Dungeons\35-40_SunkenCity.lua
+Guides\Dungeons\36-44_SMArmory.lua
+Guides\Dungeons\37-46_RazorfenDowns.lua
+Guides\Dungeons\38-46_SMCathedral.lua
+Guides\Dungeons\40-45_BastionKroldok.lua
+Guides\Dungeons\41-51_Uldaman.lua
+Guides\Dungeons\44-54_ZulFarrak.lua
+Guides\Dungeons\46-55_Maraudon.lua
+Guides\Dungeons\48-53_AlcazPrison.lua
+Guides\Dungeons\50-60_SunkenTemple.lua
+Guides\Dungeons\52-60_BlackrockDepths.lua
+Guides\Dungeons\54-60_DireMaulEast.lua
+Guides\Dungeons\55-60_LowerBlackrockSpire.lua
+Guides\Dungeons\55-60_Noiregueules.lua
+Guides\Dungeons\56-60_DireMaulNorth.lua
+Guides\Dungeons\56-60_DireMaulWest.lua
+Guides\Dungeons\58-60_Scholomance.lua
+Guides\Dungeons\58-60_ShapersTerrace.lua
+Guides\Dungeons\58-60_Stratholme.lua
+Guides\Dungeons\59-60_UpperBlackrockSpire.lua
+
+# Over World guides (world quests with unique rewards)
+Guides\Over World\10-60_NightWatchmansTorch.lua
+Guides\Over World\14-60_CozySleepingBag.lua
+
+# User interface
+UI\Theme.lua
+UI\MainWindow.lua
+UI\Arrow.lua
+UI\Minimap.lua
+UI\MapPins.lua
+UI\Targets.lua
+UI\ItemButton.lua
+
+# Group sync, automation, options (need the UI)
+Core\Group.lua
+Core\Automation.lua
+UI\Options.lua

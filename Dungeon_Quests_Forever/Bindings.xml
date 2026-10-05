@@ -1,0 +1,7 @@
+<Bindings>
+    <Binding name="DQF_TOGGLE" header="DQF" category="ADDONS">DQF_Toggle()</Binding>
+    <Binding name="DQF_ARROW" category="ADDONS">DQF_ToggleArrow()</Binding>
+    <Binding name="DQF_NEXT" category="ADDONS">DQF_Next()</Binding>
+    <Binding name="DQF_PREV" category="ADDONS">DQF_Prev()</Binding>
+    <Binding name="DQF_OPTIONS" category="ADDONS">DQF_Options()</Binding>
+</Bindings>

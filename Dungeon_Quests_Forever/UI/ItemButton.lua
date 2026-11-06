@@ -29,6 +29,7 @@ function I:Init()
         f.stripe:SetColorTexture(t.accent[1], t.accent[2], t.accent[3], 1)
     end
     f.ApplyTheme()
+    if ns.BLIZZ then ns.Skin.SmallFrame(f) end
 
     -- the secure button covers the whole body: click anywhere to use the item
     local b = CreateFrame("Button", "DQF_ItemButton", f.body, "SecureActionButtonTemplate")
@@ -119,7 +120,7 @@ function I:Render()
     b.icon:SetTexture((C_Item and C_Item.GetItemIconByID or GetItemIcon)(id))
     local name, _, quality; if ns.GetItemInfo then name, _, quality = ns.GetItemInfo(id) end
     b.name:SetText(name or "...")
-    local r, g, bl = GetItemQualityColor(quality or 1)
+    local r, g, bl = ns.QualityColor(quality)
     b.name:SetTextColor(r, g, bl)
     b.count:SetText(count > 1 and count or "")
     self:UpdateCooldown()

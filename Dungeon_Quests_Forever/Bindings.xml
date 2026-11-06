@@ -4,4 +4,5 @@
     <Binding name="DQF_NEXT" category="ADDONS">DQF_Next()</Binding>
     <Binding name="DQF_PREV" category="ADDONS">DQF_Prev()</Binding>
     <Binding name="DQF_OPTIONS" category="ADDONS">DQF_Options()</Binding>
+    <Binding name="DQF_JOURNAL" category="ADDONS">DQF_Journal()</Binding>
 </Bindings>

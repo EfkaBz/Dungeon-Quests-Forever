@@ -28,16 +28,25 @@ local function ObjectiveText(step)
     return table.concat(parts, ", ")
 end
 
+-- Level needed to take the quest, shown on the accept steps (red when too low)
+local function RequiredLevelText(step)
+    if step.type ~= "accept" then return "" end
+    local req = ns.Questie and ns.Questie.RequiredLevel(step.quest)
+    if not req or req <= 1 then return "" end
+    local color = UnitLevel("player") < req and "|cffff4444" or "|cff999999"
+    return "  " .. color .. "(" .. L("Niveau %d requis", "Level %d required"):format(req) .. ")|r"
+end
+
 -- The two text lines shown for a step (main line, sub line)
 function ns.StepLines(step)
     local title = ns.StepTitle(step)
     if step.type == "do" then
         return step.text, (not step.done and ObjectiveText(step)) or title
     end
-    if not step.npcKey then return step.text, VERB[step.type] .. " " .. title end -- e.g. quest started by an item
+    if not step.npcKey then return step.text, VERB[step.type] .. " " .. title .. RequiredLevelText(step) end -- e.g. quest started by an item
     local npc = "|cff33ff33" .. ns.NPCName(ns.StepNPC(step)) .. "|r"
     if step.type == "talk" then return VERB.talk .. " " .. npc, step.text end
-    return VERB.go .. " " .. npc, VERB[step.type] .. " " .. title
+    return VERB.go .. " " .. npc, VERB[step.type] .. " " .. title .. RequiredLevelText(step)
 end
 
 local function Font(parent, template)
@@ -95,10 +104,9 @@ end
 local function AddRewards(q)
     local i = ns.Progress.LogIndex(q)
     if not i then return end
-    local prev = GetQuestLogSelection()
-    SelectQuestLogEntry(i)
+    local restore = ns.Progress.SelectInLog(q)
     local ok, xp, money, items = pcall(CollectRewards, q)
-    SelectQuestLogEntry(prev or 0)
+    restore()
     if not ok then return end
     if (xp and xp > 0) or money > 0 or #items > 0 then
         GameTooltip:AddLine(" ")
@@ -115,6 +123,14 @@ function ns.StepTooltip(owner, step, anchor)
     local m, x, y = ns.StepLocation(step)
     if m then GameTooltip:AddLine(("%s (%.1f, %.1f)"):format(ns.ZoneName(m), x, y), 1, 1, 1)
     else GameTooltip:AddLine(ns.CurrentDungeon().name, 1, 1, 1) end
+    if not step.quest or step.quest == 0 then
+        -- step without quest (e.g. getting an item): its text only
+        if step.text then GameTooltip:AddLine(step.text, 1, 1, 1, true) end
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(L("Clic droit : menu", "Right-click: menu"), 0.4, 0.8, 1)
+        GameTooltip:Show()
+        return
+    end
     local lvl = ns.Questie and ns.Questie.QuestLevels(step.quest)
     if lvl then GameTooltip:AddLine(lvl, 0.8, 0.8, 0.8) end
     local obj = ns.Progress.Objectives(step.quest)
@@ -130,6 +146,7 @@ function ns.StepTooltip(owner, step, anchor)
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("Quest ID: " .. step.quest, 0.5, 0.5, 0.5)
     GameTooltip:AddLine(L("Clic droit : menu", "Right-click: menu"), 0.4, 0.8, 1)
+    GameTooltip:AddLine(L("Maj+clic : lien dans le chat", "Shift-click: link in chat"), 0.4, 0.8, 1)
     GameTooltip:Show()
 end
 
@@ -160,11 +177,16 @@ end
 
 -- Small square checkbox (used on the objective card)
 local function CheckBox(parent, size)
-    local c = ns.Panel(parent, "bg", "CheckButton", true)
-    c:SetSize(size, size)
-    c:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
-    c:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
-    c:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    local c
+    if ns.BLIZZ then
+        c = ns.Skin.Check(parent, size) -- the game's check box
+    else
+        c = ns.Panel(parent, "bg", "CheckButton", true)
+        c:SetSize(size, size)
+        c:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+        c:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
+        c:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    end
     c:SetScript("OnClick", function(self) UI:ToggleStep(self.step, self:GetChecked()) end)
     c:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
@@ -226,6 +248,9 @@ local function CreateRow(parent)
     r:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.05)
     r:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     r:SetScript("OnClick", function(self, btn)
+        if not self.step then return end
+        if btn == "LeftButton" and IsShiftKeyDown() and (self.step.quest or 0) > 0
+            and ns.InsertLink(ns.QuestLink(self.step.quest, ns.StepTitle(self.step))) then return end
         if btn == "RightButton" then UI:StepMenu(self, self.step) else UI:SetWaypoint(self.step) end
     end)
     r:SetScript("OnEnter", function(self) if self.step then ns.StepTooltip(self, self.step) end end)
@@ -250,8 +275,20 @@ end
 -- Main window
 ----------------------------------------------------------------------
 function UI:Init()
-    local f = ns.Panel(UIParent)
+    -- Blizzard theme: the game's portrait window (dungeon icon as portrait,
+    -- dungeon name as title) on spellbook pages, like Dungeon Home
+    local f
+    if ns.BLIZZ then
+        HEADER_H = 60
+        f = ns.Skin.Window("DQF_Frame", "")
+        ns.Skin.Parchment(f, HEADER_H, true) -- one page, easier to read
+        if f.CloseButton then f.CloseButton:SetScript("OnClick", function() UI:Toggle(false) end) end
+    else
+        f = ns.Panel(UIParent)
+    end
     _G.DQF_Frame = f
+    f.dqfSecure = true -- docked secure buttons: never hidden / resized in combat
+    ns.Anim.Window(f)
     local size = DQF_DB.size
     f:SetSize(size and size[1] or 280, size and size[2] or 360)
     f:SetClampedToScreen(true); f:EnableMouse(true); f:SetMovable(true); f:SetResizable(true)
@@ -271,7 +308,13 @@ function UI:Init()
 
     -- Header: accent stripe, dungeon icon, name, levels, buttons, progress line
     local head = CreateFrame("Frame", nil, f)
-    head:SetPoint("TOPLEFT", 1, -1); head:SetPoint("TOPRIGHT", -1, -1); head:SetHeight(HEADER_H)
+    local inset = ns.BLIZZ and 6 or 1
+    if ns.BLIZZ then
+        -- the row under the window title, right of the portrait
+        head:SetPoint("TOPLEFT", 4, -24); head:SetPoint("TOPRIGHT", -4, -24); head:SetHeight(HEADER_H - 24)
+    else
+        head:SetPoint("TOPLEFT", inset, -inset); head:SetPoint("TOPRIGHT", -inset, -inset); head:SetHeight(HEADER_H)
+    end
     Drag(head)
     head:SetScript("OnMouseUp", function(s, btn) if btn == "RightButton" then UI:MainMenu(s) end end)
     head:SetScript("OnEnter", function(s)
@@ -291,10 +334,10 @@ function UI:Init()
     head.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     head.name = Font(head, "GameFontHighlight")
     head.name:SetPoint("TOPLEFT", head.iconFrame, "TOPRIGHT", 8, -2)
-    head.name:SetPoint("RIGHT", -50, 0)
+    head.name:SetPoint("RIGHT", -90, 0)
     head.info = Font(head, "GameFontDisableSmall")
     head.info:SetPoint("TOPLEFT", head.name, "BOTTOMLEFT", 0, -3)
-    head.info:SetPoint("RIGHT", -50, 0)
+    head.info:SetPoint("RIGHT", -90, 0)
     head.menu = IconButton(head, "Interface\\Buttons\\UI-OptionsButton",
         function() return L("Guides et options", "Guides and options") end, function(b) UI:MainMenu(b) end)
     head.menu:SetPoint("TOPRIGHT", -8, -8)
@@ -302,12 +345,31 @@ function UI:Init()
         function() return DQF_DB.collapsed and L("Déplier", "Expand") or L("Replier", "Collapse") end,
         function() UI:SetCollapsed(not DQF_DB.collapsed) end)
     head.collapse:SetPoint("RIGHT", head.menu, "LEFT", -4, 0)
+    head.journal = IconButton(head, "Interface\\Icons\\INV_Misc_Book_09",
+        function() return L("Dungeon Home (quêtes, boss, butin, carte)", "Dungeon Home (quests, bosses, loot, map)") end,
+        function() ns.Journal:Open(ns.CurrentDungeon().key) end)
+    head.journal:GetNormalTexture():SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    head.journal:SetPoint("RIGHT", head.collapse, "LEFT", -4, 0)
+    head.share = IconButton(head, "Interface\\GossipFrame\\GossipGossipIcon",
+        function() return L("Partager les quêtes de ce guide dans le chat (/p ou /bg)", "Share this guide's quests in the chat (/p or /bg)") end,
+        function() ns.Group.ShareAllInChat() end)
+    head.share:SetPoint("RIGHT", head.journal, "LEFT", -4, 0)
     -- progress line along the bottom of the header
     head.prog = CreateFrame("StatusBar", nil, head)
     head.prog:SetPoint("BOTTOMLEFT", 3, 0); head.prog:SetPoint("BOTTOMRIGHT"); head.prog:SetHeight(3)
     head.prog:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
     head.prog.bg = head.prog:CreateTexture(nil, "BACKGROUND")
     head.prog.bg:SetAllPoints(); head.prog.bg:SetColorTexture(0, 0, 0, 0.5)
+    if ns.BLIZZ then
+        -- icon and name are the window's portrait and title
+        head.bg:Hide(); head.stripe:Hide(); head.iconFrame:Hide(); head.name:Hide()
+        head.info:ClearAllPoints()
+        head.info:SetPoint("LEFT", 58, 0); head.info:SetPoint("RIGHT", -90, 0)
+        head.info:SetFontObject("GameFontHighlightSmall")
+        head.menu:ClearAllPoints(); head.menu:SetPoint("RIGHT", -8, 0)
+        head.prog:ClearAllPoints()
+        head.prog:SetPoint("BOTTOMLEFT", 4, 0); head.prog:SetPoint("BOTTOMRIGHT", -2, 0)
+    end
     self.head = head
 
     -- Current objective card
@@ -334,14 +396,16 @@ function UI:Init()
     card.sub = Font(card, "GameFontNormal")
     card.sub:SetPoint("TOPLEFT", card.main, "BOTTOMLEFT", 0, -4)
     card.sub:SetWordWrap(true)
+    if ns.BLIZZ then ns.Skin.ListBox(card, 2) end
     self.card = card
 
     -- Footer: version + resize grip
     local foot = CreateFrame("Frame", nil, f)
-    foot:SetPoint("BOTTOMLEFT", 1, 1); foot:SetPoint("BOTTOMRIGHT", -1, 1); foot:SetHeight(FOOT_H)
+    foot:SetPoint("BOTTOMLEFT", inset, inset); foot:SetPoint("BOTTOMRIGHT", -inset, inset); foot:SetHeight(FOOT_H)
     Drag(foot)
     foot.text = Font(foot, "GameFontDisableSmall")
     foot.text:SetPoint("LEFT", 8, 0)
+    if ns.BLIZZ then ns.Skin.Ink(foot.text); foot.text:SetTextColor(0, 0, 0) end -- black on the parchment (easier to read)
     local grip = CreateFrame("Button", nil, foot)
     grip:SetSize(14, 14); grip:SetPoint("BOTTOMRIGHT", -2, 2)
     grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
@@ -369,6 +433,10 @@ function UI:Init()
     list.sep = list:CreateTexture(nil, "BORDER")
     list.sep:SetPoint("TOPLEFT", 8, GAP / 2); list.sep:SetPoint("TOPRIGHT", -8, GAP / 2); list.sep:SetHeight(1)
     list.sep:SetColorTexture(1, 1, 1, 0.08)
+    if ns.BLIZZ then
+        list.sep:Hide()
+        ns.Skin.ListBox(list, 0)
+    end
     self.list = list
 
     -- thin scroll bar on the right edge (drag the thumb, or use the wheel)
@@ -408,15 +476,31 @@ function UI:SetCollapsed(collapsed, init)
     local minH = DQF_DB.collapsed and (HEADER_H + 2) or (HEADER_H + GAP + CARD_MIN + GAP + 2 * ROW_MIN + FOOT_H + 6)
     if f.SetResizeBounds then f:SetResizeBounds(MIN_W, minH, MAX_W, MAX_H)
     else f:SetMinResize(MIN_W, minH); f:SetMaxResize(MAX_W, MAX_H) end
-    self.list:SetShown(not DQF_DB.collapsed)
-    self.foot:SetShown(not DQF_DB.collapsed)
     self.head.collapse:SetNormalTexture(DQF_DB.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
-    if DQF_DB.collapsed then
-        f:SetHeight(HEADER_H + GAP + CARD_MIN + GAP) -- adjusted to the card in OnUpdate
+    if init or not f:IsShown() then
+        self.list:SetShown(not DQF_DB.collapsed)
+        self.foot:SetShown(not DQF_DB.collapsed)
+        if DQF_DB.collapsed then
+            f:SetHeight(HEADER_H + GAP + CARD_MIN + GAP) -- adjusted to the card in OnUpdate
+        else
+            f:SetHeight(math.max(minH, DQF_DB.size and DQF_DB.size[2] or 360))
+        end
+        if ns.state then self:OnUpdate(ns.state) end
+    elseif DQF_DB.collapsed then
+        -- hide the list first, then shrink smoothly to the card
+        self.list:Hide(); self.foot:Hide()
+        ns.Anim.Height(f, math.ceil(HEADER_H + GAP + self.card:GetHeight() + GAP), function()
+            if ns.state then UI:OnUpdate(ns.state) end
+        end)
     else
-        f:SetHeight(math.max(minH, DQF_DB.size and DQF_DB.size[2] or 360))
+        -- grow smoothly, then show the list with a fade
+        ns.Anim.Height(f, math.max(minH, DQF_DB.size and DQF_DB.size[2] or 360), function()
+            if DQF_DB.collapsed then return end
+            UI.list:Show(); UI.foot:Show()
+            ns.Anim.FadeIn(UI.list); ns.Anim.FadeIn(UI.foot)
+            if ns.state then UI:OnUpdate(ns.state) end
+        end)
     end
-    if ns.state then self:OnUpdate(ns.state) end
 end
 
 -- Re-render when the window size changes (texts re-wrap, rows are re-placed)
@@ -436,9 +520,16 @@ function UI:ApplyAccent()
     if ns.state then self:OnUpdate(ns.state) end
 end
 
+-- The window holds secure buttons (targets / quest item): the game forbids
+-- changing its scale during combat, so it is applied when combat ends.
 function UI:ApplySettings()
-    self.frame:SetScale(DQF_DB.scale)
     self.frame:SetAlpha(DQF_DB.alpha)
+    if InCombatLockdown() then
+        self.pendingSettings = true
+        return
+    end
+    self.pendingSettings = false
+    self.frame:SetScale(DQF_DB.scale)
 end
 
 -- Always keep the window anchored by its top-left corner (stable moving/resizing)
@@ -459,6 +550,7 @@ end
 
 ns:On("PLAYER_REGEN_ENABLED", function()
     if UI.pendingStop then UI:StopDrag() end
+    if UI.pendingSettings then UI:ApplySettings() end
     ns.RequestUpdate() -- apply size changes that were skipped during combat
 end)
 ns:On("PLAYER_REGEN_DISABLED", function()
@@ -491,7 +583,7 @@ function UI:Toggle(show)
     end
     if show == nil then show = not self.frame:IsShown() end
     DQF_DB.shown = show
-    self.frame:SetShown(show)
+    ns.Anim.SetShown(self.frame, show)
     if show then ns.Update(true) end
 end
 
@@ -578,11 +670,18 @@ function UI:StepMenu(anchor, step)
         { step.done and L("Marquer comme non faite", "Mark as not done") or L("Marquer comme faite", "Mark as done"),
           function() UI:ToggleStep(step, not step.done) end },
     }
-    if ns.Group.CanShare(step.quest) then
+    local hasQuest = (step.quest or 0) > 0
+    if hasQuest and ns.Group.CanShare(step.quest) then
         items[#items + 1] = { L("Partager la quête au groupe", "Share quest with group"), function() ns.Group.Share(step.quest) end }
     end
     if TomTom and ns.StepTarget(step, ns.CurrentDungeon()) then
         items[#items + 1] = { L("Waypoint TomTom", "TomTom waypoint"), function() UI:SetWaypoint(step) end }
+    end
+    if hasQuest then
+        items[#items + 1] = { L("Fiche de la quête (Dungeon Home)", "Quest sheet (Dungeon Home)"),
+            function() ns.Journal:Open(ns.CurrentDungeon().key, "quests", step.quest) end }
+        items[#items + 1] = { L("Lien dans le chat", "Link in chat"),
+            function() ns.InsertLink(ns.QuestLink(step.quest, ns.StepTitle(step))) end }
     end
     ns.ShowMenu(anchor, items)
 end
@@ -591,10 +690,11 @@ end
 function UI:GuideTree()
     local faction = UnitFactionGroup("player")
     local brackets, order = {}, {}
-    local keys, overworld = {}, {}
+    local keys, overworld, attune = {}, {}, {}
     for _, key in ipairs(ns.dungeonOrder) do
         local d = ns.dungeons[key]
-        if d.overworld then overworld[#overworld + 1] = key
+        if d.attunement then attune[#attune + 1] = key
+        elseif d.overworld then overworld[#overworld + 1] = key
         elseif not d.faction or d.faction == faction then keys[#keys + 1] = key end
     end
     table.sort(keys, function(a, b)
@@ -630,7 +730,9 @@ function UI:GuideTree()
         if #t == 0 then t[1] = { L("Aucun guide", "No guide"), isTitle = true } end
         return t
     end
-    return { { label, children = byLevel }, { L("Monde (Over World)", "Over World"), children = Flat(overworld) } }
+    table.sort(attune, function(a, b) return (ns.dungeons[a].order or 99) < (ns.dungeons[b].order or 99) end)
+    return { { label, children = byLevel }, { L("Quêtes d'accès", "Attunements"), children = Flat(attune) },
+        { L("Monde (Over World)", "Over World"), children = Flat(overworld) } }
 end
 
 function UI:MainMenu(anchor)
@@ -638,6 +740,16 @@ function UI:MainMenu(anchor)
     for _, g in ipairs(UI:GuideTree()) do items[#items + 1] = g end
     local function Toggle(key) return function() DQF_DB[key] = not DQF_DB[key]; ns.Options.Refresh(); ns.Update(true) end end
     local function Is(key) return function() return DQF_DB[key] end end
+    local d = ns.CurrentDungeon()
+    items[#items + 1] = { "Dungeon Home", isTitle = true }
+    items[#items + 1] = { L("Ouvrir Dungeon Home...", "Open Dungeon Home..."), function() ns.Journal:Open(d.key) end }
+    if d.entrance then
+        items[#items + 1] = { L("Montrer l'entrée sur la carte", "Show the entrance on the map"), function() ns.EntrancePins:ShowEntrance(d) end }
+        if ns.Route:CanRoute(d) then
+            items[#items + 1] = { ns.Route:IsActive(d) and L("Arrêter l'itinéraire", "Stop route") or L("Itinéraire vers l'entrée", "Route to the entrance"),
+                function() ns.Route:Toggle(d) end }
+        end
+    end
     items[#items + 1] = { L("Affichage", "Display"), isTitle = true }
     items[#items + 1] = { L("Flèche de guidage", "Guide arrow"), function() ns.Arrow:Toggle(); ns.Options.Refresh() end,
         checked = Is("arrowShown"), check = true }
@@ -714,7 +826,7 @@ function UI:RenderCard(st)
             L("OBJECTIF ACTUEL", "CURRENT OBJECTIVE"), TagText(s, cur)))
         c.main:SetText(main); c.sub:SetText(sub or "")
         local req = ns.Questie.RequiredLevel(s.quest)
-        if req and UnitLevel("player") < req then
+        if req and s.type ~= "accept" and UnitLevel("player") < req then
             c.sub:SetText(("|cffff4444" .. L("Niveau %d requis", "Level %d required") .. "|r - %s"):format(req, sub or ""))
         end
         c.check.step = s
@@ -743,6 +855,10 @@ function UI:OnUpdate(st, jump)
     local h = self.head
     h.icon:SetTexture(d.icon)
     h.name:SetText(d.name)
+    if ns.BLIZZ then
+        ns.Skin.SetTitle(self.frame, d.name)
+        if self.frame.portraitTex then self.frame.portraitTex:SetTexture(d.icon) end
+    end
     h.info:SetText(("%s %s   |cffffffff%d / %d|r"):format(L("Niveaux", "Levels"), d.levels, st.done, st.total))
     h.prog:SetMinMaxValues(0, math.max(1, st.total))
     h.prog:SetValue(st.done)
@@ -751,7 +867,7 @@ function UI:OnUpdate(st, jump)
     if DQF_DB.collapsed then
         -- only the header and the current objective: fit the window to the card
         local h = math.ceil(HEADER_H + GAP + self.card:GetHeight() + GAP)
-        if math.abs(self.frame:GetHeight() - h) > 0.5 and not InCombatLockdown() then self.frame:SetHeight(h) end
+        if math.abs(self.frame:GetHeight() - h) > 0.5 and not InCombatLockdown() then ns.Anim.Height(self.frame, h) end
         return
     end
 

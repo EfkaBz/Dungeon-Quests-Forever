@@ -11,6 +11,9 @@ local A, T, K, D = ns.Accept, ns.TurnIn, ns.Talk, ns.Do
 local function H(extra) local t = extra or {}; t.faction = "Horde"; return t end
 local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t end
 
+-- Past Due (new in Forever, not in Questie): ForeverDungeonJournal 1.6.3
+N.olvek = { id = 0, name = "Magus Olvek", map = 1416, x = 9.7, y = 61.9, forever = true } -- outside Dalaran, Alterac Mountains
+
 ns:RegisterDungeon("SMLIB", function() return {
     name = L("Monastère écarlate - Bibliothèque", "Scarlet Monastery - Library"),
     levels = "33-41",
@@ -28,6 +31,8 @@ ns:RegisterDungeon("SMLIB", function() return {
         [1159] = L("L'épreuve de la Connaissance", "Test of Lore"),
         [1160] = L("L'épreuve de la Connaissance", "Test of Lore"),
         [6628] = L("L'épreuve de la Connaissance", "Test of Lore"),
+        [1394] = L("Le passage final", "Final Passage"),
+        [96800] = L("En retard", "Past Due"),
     }),
     steps = ns.SM.Join(
         ns.SM.PreSteps(),
@@ -56,11 +61,13 @@ ns:RegisterDungeon("SMLIB", function() return {
             -- Other pre-quests
             A(1049, "truthseeker", H()),
             A(1050, "paledust", AL()),
+            A(96800, "olvek", AL({ text = L("Magus Olvek, devant Dalaran (niveau 30 requis)", "Magus Olvek, outside Dalaran (requires level 30)") })),
             -- Inside the Library
             ns.SM.Hearts(),
             D(1160, L("Les débuts de la menace mort-vivante (livre)", "Beginnings of the Undead Threat (book)"), H()),
             D(1049, L("Recueil des déchus (livre)", "Compendium of the Fallen (book)"), H()),
             D(1050, L("Mythologie des Titans (livre)", "Mythology of the Titans (book)"), AL()),
+            D(96800, L("La magie perdue des maîtres des runes : sur l'arcaniste Doan", "The Lost Magic of the Runemasters: from Arcanist Doan"), AL({ targets = { "doan" } })),
         },
         ns.SM.WingSteps({
             { index = 4, key = "loksey", text = L("Tuer le maître-chien Loksey", "Kill Houndmaster Loksey") },
@@ -70,9 +77,12 @@ ns:RegisterDungeon("SMLIB", function() return {
             T(1049, "truthseeker", H()),
             T(1160, "parqual", H()),
             A(6628, "parqual", H()),
-            K(6628, "parqual", L("Répondre correctement à la question de Parqual", "Answer Parqual's question correctly"), H()),
+            K(6628, "parqual", L("Répondre correctement à la question de Parqual (réponse : Ner'zhul)", "Answer Parqual's question correctly (answer: Ner'zhul)"), H()),
             T(6628, "parqual", H()),
+            A(1394, "parqual", H()),
+            T(1394, "dorn", H({ text = L("Dorn Plainstalker, Mille pointes", "Dorn Plainstalker, Thousand Needles") })),
             T(1050, "paledust", AL()),
+            T(96800, "olvek", AL()),
             T(1113, "faranell", H()),
         }
     ),

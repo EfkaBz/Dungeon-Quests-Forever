@@ -1,19 +1,9 @@
 local ADDON, ns = ...
-ns.VERSION = "0.2.4"
+ns.VERSION = "0.3.26"
 ns.dungeons, ns.dungeonOrder, ns.NPCS = {}, {}, {}
--- Language: "auto" follows the game client, "fr" / "en" force it (option).
+-- Language functions (ns.L, ns.Lang, ns.IsFR...) live in Core\Locale.lua.
 -- Saved variables are only available after ADDON_LOADED, so every text
 -- built at load time is created in ns.BuildLocalized() (see below).
-function ns.ClientIsFR() return GetLocale() == "frFR" end
-function ns.IsFR()
-    local lang = DQF_DB and DQF_DB.lang
-    if lang == "fr" then return true end
-    if lang == "en" then return false end
-    return ns.ClientIsFR()
-end
--- true when the addon language matches the client language (client texts usable)
-function ns.ClientLangMatches() return ns.IsFR() == ns.ClientIsFR() end
-function ns.L(fr, en) return ns.IsFR() and fr or en end
 local L = ns.L
 
 local DEFAULTS = {
@@ -22,9 +12,17 @@ local DEFAULTS = {
     shown = true, arrowShown = true, minimapShown = true, minimapAngle = 200,
     targetsShown = true, mapPins = true, minimapPins = true,
     hideDone = false, autoFollow = true, locked = false,
-    scale = 1, alpha = 1, theme = "default",
+    scale = 1, alpha = 1, theme = "blizzard", -- new installs start with the game look
     manual = {},
+    -- journal window, map and group features
+    journal = {}, hiddenDungeons = {}, lootFilter = {},
+    entrancePins = false, dungeonWorldMap = true, autoRoute = true, versionCheck = true,
 }
+
+-- Account-wide data learned while playing (shared by all characters):
+-- quest rewards seen in the quest log / quest window, boss positions and
+-- portraits, dungeon map IDs.
+local CACHE_DEFAULTS = { rewards = {}, bossPos = {}, maps = {}, instances = {} }
 
 ----------------------------------------------------------------------
 -- Event bus
@@ -59,6 +57,20 @@ local CI = C_Item or {}
 ns.GetItemCount = CI.GetItemCount or GetItemCount
 ns.GetItemInfo = CI.GetItemInfo or GetItemInfo
 
+-- Quality color (r, g, b): C_Item on Forever, global on older clients,
+-- the ITEM_QUALITY_COLORS table as a last resort
+function ns.QualityColor(quality)
+    quality = quality or 1
+    local fn = CI.GetItemQualityColor or GetItemQualityColor
+    if fn then
+        local ok, r, g, b = pcall(fn, quality)
+        if ok and r then return r, g, b end
+    end
+    local c = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+    if c then return c.r, c.g, c.b end
+    return 1, 1, 1
+end
+
 -- data can be a table or a function returning it (built after the
 -- language is known)
 local builders = {}
@@ -77,16 +89,212 @@ function ns:ComingSoon(key, fr, en, levels, opts)
     end)
 end
 
+-- Steps added later to a guide (Guides\QuestUpdates.lua). They get their own
+-- uid, so the checks saved for the original steps stay on the right steps.
+--   fn() returns { titles = {...}, groups = { { before = questID or nil, steps = {...} }, ... } }
+local guidePatches = {}
+function ns:AddGuideSteps(key, fn)
+    guidePatches[key] = guidePatches[key] or {}
+    table.insert(guidePatches[key], fn)
+end
+
+local function ApplyPatches(key, data)
+    for _, fn in ipairs(guidePatches[key] or {}) do
+        local p = fn()
+        data.titles = data.titles or {}
+        for q, t in pairs(p.titles or {}) do
+            if data.titles[q] == nil then data.titles[q] = t end
+        end
+        local used = {}
+        for _, g in ipairs(p.groups or {}) do
+            -- steps of these quests move before g.before and keep their uid
+            local moved = {}
+            if g.move then
+                local want = {}
+                for _, q in ipairs(g.move) do want[q] = true end
+                for i = #data.steps, 1, -1 do
+                    if want[data.steps[i].quest] then
+                        table.insert(moved, 1, table.remove(data.steps, i))
+                    end
+                end
+            end
+            local pos = #data.steps + 1
+            if g.before then
+                for i, s in ipairs(data.steps) do
+                    if s.quest == g.before then pos = i break end
+                end
+            end
+            for _, s in ipairs(moved) do
+                table.insert(data.steps, pos, s)
+                pos = pos + 1
+            end
+            for _, s in ipairs(g.steps or {}) do
+                local id = s.type .. ":" .. s.quest
+                used[id] = (used[id] or 0) + 1
+                s.uid = id .. ":" .. used[id]
+                table.insert(data.steps, pos, s)
+                pos = pos + 1
+            end
+        end
+    end
+end
+
 local function BuildDungeon(key, data)
     if type(data) == "function" then data = data() end
     data.key = key
     for i, s in ipairs(data.steps) do s.uid = i end
+    ApplyPatches(key, data)
     ns.dungeons[key] = data
     table.insert(ns.dungeonOrder, key)
 end
 
+-- Bosses and loot (Data\Bosses\*.lua): attached to the dungeon as d.bossInfo
+-- = { instance, area, bosses = { {name, npc, level, display, rare, extra, loot} }, trash }
+local bossData = {}
+function ns:RegisterBosses(key, data) bossData[key] = data end
+
+-- Boss data added later (Data\BossUpdates.lua): loot added to the boss of that
+-- name, unknown bosses created at the end of the list (the saved data of a boss
+-- is keyed on its position). Names are sorted: pairs() has no fixed order.
+local function MergeBossUpdates(key, info)
+    local function Add(list, ids)
+        local have = {}
+        for _, id in ipairs(list) do have[id] = true end
+        for _, id in ipairs(ids) do
+            if not have[id] then have[id] = true; list[#list + 1] = id end
+        end
+    end
+    local updates = ns.BOSS_UPDATES and ns.BOSS_UPDATES[key]
+    if not updates then return end
+    local names = {}
+    for name in pairs(updates) do names[#names + 1] = name end
+    table.sort(names)
+    for _, name in ipairs(names) do
+        local u = updates[name]
+        if name == "Trash Drops" then
+            info.trash = info.trash or {}
+            Add(info.trash, u.loot)
+        else
+            local boss
+            for _, b in ipairs(info.bosses) do if b.name == name then boss = b break end end
+            if not boss and u.new then
+                boss = { name = name, npc = u.npc, loot = {} }
+                info.bosses[#info.bosses + 1] = boss
+            end
+            if boss then
+                boss.loot = boss.loot or {}
+                Add(boss.loot, u.loot)
+            end
+        end
+    end
+end
+
+local function AttachBosses()
+    -- boss NPC IDs missing from the loot data: take them from the guide NPCs
+    local byName = {}
+    for _, n in pairs(ns.NPCS) do if n.name and n.id and n.id > 0 then byName[n.name] = n.id end end
+    -- extra presentation data (Data\DungeonInfo.lua): card art, map wing, route
+    for key, extra in pairs(ns.DUNGEON_INFO or {}) do
+        local d = ns.dungeons[key]
+        if d then for k, v in pairs(extra) do if d[k] == nil then d[k] = v end end end
+    end
+    for key, info in pairs(bossData) do
+        local d = ns.dungeons[key]
+        if d then
+            d.bossInfo = info
+            -- some names of the loot data end with a space: facts and NPC IDs were not found
+            for _, b in ipairs(info.bosses) do b.name = (b.name:gsub("%s+$", "")) end
+            MergeBossUpdates(key, info)
+            local learned = DQF_Cache.npcIDs or {}
+            local facts = (ns.BOSS_FACTS and ns.BOSS_FACTS[key]) or {}
+            for i, b in ipairs(info.bosses) do
+                -- facts observed on the Forever client (Data\BossFacts.lua)
+                local f = facts[b.name]
+                if f and f.npc and not b.npc then b.npc = f.npc end
+                if f and f.level then b.level = f.level end
+                if not b.npc and not b.extra then b.npc = byName[b.name] end
+                b.npcID = type(b.npc) == "table" and b.npc[1] or b.npc
+                -- learned in game when the boss was targeted (Map.lua)
+                if not b.npcID or b.npcID == 0 then b.npcID = learned[key .. ":" .. i] end
+                local disp = (f and f.display) or (b.npcID and ns.BOSS_DISPLAY and ns.BOSS_DISPLAY[b.npcID])
+                    or (DQF_Cache.bossDisplay and DQF_Cache.bossDisplay[key .. ":" .. i]) -- learned from the unit (Map.lua)
+                if disp then b.display, b.displayChecked = disp, true end
+            end
+        end
+    end
+end
+
 function ns.CurrentDungeon()
     return ns.dungeons[DQF_DB.dungeon] or ns.dungeons[ns.dungeonOrder[1]]
+end
+
+-- Name of a boss of the loot data (client language when possible)
+function ns.BossName(b)
+    if b.npcID and not b.extra then return ns.NPCName({ id = b.npcID, name = b.name }) end
+    return b.name
+end
+
+-- Key of the dungeon the player is in (instance ID, then instance name), or nil
+-- comparable name: lower case, no leading article, no spaces/punctuation
+local ARTICLES = { "the ", "la ", "le ", "les ", "l'", "der ", "die ", "das ", "el ", "los ", "las ", "il ", "lo ", "o ", "a " }
+local function Norm(s)
+    if not s then return "" end
+    s = s:lower()
+    for _, a in ipairs(ARTICLES) do
+        if s:sub(1, #a) == a then s = s:sub(#a + 1) break end
+    end
+    return (s:gsub("[%s%p]", ""))
+end
+function ns.InstanceDungeon()
+    local inInstance, kind = IsInInstance()
+    if not inInstance or (kind ~= "party" and kind ~= "raid") then return end
+    local name, _, _, _, _, _, _, instanceID = GetInstanceInfo()
+    local candidates = {}
+    if instanceID and DQF_Cache.instances[instanceID] then candidates[1] = DQF_Cache.instances[instanceID] end
+    for _, key in ipairs(ns.dungeonOrder) do
+        local d = ns.dungeons[key]
+        if d.bossInfo and d.bossInfo.instance == instanceID then candidates[#candidates + 1] = key end
+    end
+    if #candidates == 0 and name then
+        local n = Norm(name)
+        for _, key in ipairs(ns.dungeonOrder) do
+            if Norm(ns.dungeons[key].name) == n then candidates[1] = key break end
+        end
+        -- names that differ a little ("Excavation Site: Wetlands" / "Excavation Site")
+        if #candidates == 0 and #n >= 6 then
+            for _, key in ipairs(ns.dungeonOrder) do
+                local dn = Norm(ns.dungeons[key].name)
+                if #dn >= 6 and (dn:find(n, 1, true) or n:find(dn, 1, true)) then candidates[#candidates + 1] = key end
+            end
+        end
+    end
+    if #candidates <= 1 then return candidates[1] end
+    -- several dungeons share the instance (Scarlet Monastery wings, Blackrock
+    -- Spire): prefer the wing whose map is the current map, then the guide in use
+    local map = C_Map.GetBestMapForUnit("player")
+    for _, key in ipairs(candidates) do
+        if map and ns.dungeons[key].wingMap == map then return key end
+    end
+    for _, key in ipairs(candidates) do if key == DQF_DB.dungeon then return key end end
+    return candidates[1]
+end
+
+-- Chat link of a quest. The game only gives a real link for a quest in the quest
+-- log, and a link made by hand arrives as plain text. Otherwise: the text Questie
+-- itself sends, which it turns into a clickable link for the players who have it.
+function ns.QuestLink(q, title)
+    if GetQuestLink then
+        local ok, link = pcall(GetQuestLink, q)
+        if ok and type(link) == "string" and link ~= "" then return link end
+    end
+    return ("[%s (%d)]"):format(title or ("Quest " .. q), q)
+end
+
+-- Put a link in the chat edit box (returns true when done)
+function ns.InsertLink(link)
+    if not link then return end
+    if ChatEdit_InsertLink and ChatEdit_InsertLink(link) then return true end
+    if ChatFrame_OpenChat then ChatFrame_OpenChat(link); return true end
 end
 
 ----------------------------------------------------------------------
@@ -94,6 +302,7 @@ end
 ----------------------------------------------------------------------
 local nameCache = {}
 local scan = CreateFrame("GameTooltip", "DQF_ScanTip", nil, "GameTooltipTemplate")
+local scanAgainAt = 0 -- the game hides tooltip text (secret values) at times: wait, then retry
 
 function ns.LearnName(npcID, name)
     if npcID and name then nameCache[npcID] = name end
@@ -102,13 +311,16 @@ end
 function ns.NPCName(npc)
     if not npc then return "?" end
     if nameCache[npc.id] then return nameCache[npc.id] end
+    if not npc.id or npc.id == 0 then return npc.name end -- no NPC ID: nothing to ask the game
     local clientEN = GetLocale() == "enUS" or GetLocale() == "enGB"
-    if not clientEN and ns.ClientLangMatches() then
+    if not clientEN and ns.ClientLangMatches() and GetTime() >= scanAgainAt then
         scan:SetOwner(UIParent, "ANCHOR_NONE")
         local ok = pcall(scan.SetHyperlink, scan, ("unit:Creature-0-0-0-0-%d-0000000000"):format(npc.id))
         local line = ok and DQF_ScanTipTextLeft1 and DQF_ScanTipTextLeft1:GetText()
         scan:Hide()
-        if line and line ~= "" then
+        if ns.IsSecret(line) then
+            scanAgainAt = GetTime() + 10
+        elseif line and line ~= "" then
             nameCache[npc.id] = line
             return line
         end
@@ -132,6 +344,7 @@ end
 function ns.StepNPC(step) return step.npcKey and ns.NPCS[step.npcKey] end
 
 function ns.StepTitle(step, d)
+    if step.title then return step.title end -- steps without quest (quest = 0)
     if ns.ClientLangMatches() then
         local t = C_QuestLog and C_QuestLog.GetQuestInfo and C_QuestLog.GetQuestInfo(step.quest)
         if t and t ~= "" then return t end
@@ -202,7 +415,9 @@ function ns.Update(jump)
     if ns.state and ns.state.step ~= state.step then jump = true end
     ns.state = state
     for _, m in ipairs(ns.modules) do
-        if m.OnUpdate then m:OnUpdate(state, jump) end
+        if m.OnUpdate then
+            xpcall(function() m:OnUpdate(state, jump) end, geterrorhandler())
+        end
     end
 end
 
@@ -225,14 +440,22 @@ ns:On("ADDON_LOADED", function(name)
     for k, v in pairs(DEFAULTS) do
         if DQF_DB[k] == nil then DQF_DB[k] = type(v) == "table" and {} or v end
     end
+    -- "Blizzard (game)" theme: windows are built with the game's components
+    -- (fixed for the session, changing it reloads the UI)
+    ns.BLIZZ = DQF_DB.theme == "blizzard"
+    DQF_Cache = DQF_Cache or {}
+    for k in pairs(CACHE_DEFAULTS) do DQF_Cache[k] = DQF_Cache[k] or {} end
+    DQF_Cache.display = nil -- old portrait cache (could hold wrong values), replaced by 3D portraits
     for _, b in ipairs(builders) do BuildDungeon(b[1], b[2]) end
+    AttachBosses()
     ns.BuildLocalized()
     if not ns.dungeons[DQF_DB.dungeon] then DQF_DB.dungeon = ns.dungeonOrder[1] end
 end)
 
 ns:On("PLAYER_LOGIN", function()
+    -- an error in one module is still reported, but must not stop the others
     for _, m in ipairs(ns.modules) do
-        if m.Init then m:Init() end
+        if m.Init then xpcall(function() m:Init() end, geterrorhandler()) end
     end
     ns.Update(true)
 end)
@@ -265,6 +488,7 @@ DQF_ToggleArrow = function() ns.Arrow:Toggle() end
 DQF_Next = ns.NextStep
 DQF_Prev = ns.PrevStep
 DQF_Options = function() ns.Options:Toggle() end
+DQF_Journal = function() ns.Journal:Toggle() end
 
 BINDING_HEADER_DQF = "Dungeon Quests Forever"
 
@@ -277,6 +501,7 @@ function ns.BuildLocalized()
     BINDING_NAME_DQF_NEXT = L("Étape suivante", "Next step")
     BINDING_NAME_DQF_PREV = L("Étape précédente", "Previous step")
     BINDING_NAME_DQF_OPTIONS = L("Options", "Options")
+    BINDING_NAME_DQF_JOURNAL = L("Afficher/cacher Dungeon Home", "Show/hide Dungeon Home")
     for _, fn in ipairs(ns.localizers) do fn() end
 end
 
@@ -293,5 +518,26 @@ SlashCmdList.DQF = function(msg)
     elseif msg == "scan" then ns.Progress.Scan(true)
     elseif msg == "next" then ns.NextStep()
     elseif msg == "prev" then ns.PrevStep()
+    elseif msg == "journal" or msg == "j" then ns.Journal:Toggle()
+    elseif msg == "route" then ns.Route:Toggle(ns.CurrentDungeon())
+    elseif msg == "where" then
+        -- debug: where the current step points, and the maps involved
+        local function MapText(id)
+            local i = id and C_Map.GetMapInfo(id)
+            return ("%s (%s, type %s)"):format(tostring(id), i and i.name or "?", i and tostring(i.mapType) or "?")
+        end
+        local st = ns.state
+        local s = st and st.step
+        print("|cff9d7bffDQF where|r step:", s and s.pos, s and s.type, s and s.quest, s and s.npcKey)
+        for _, p in ipairs(s and ns.StepSpots(s, st.dungeon) or {}) do
+            print("  spot:", MapText(p.map), p.x, p.y, p.entrance and "(entrance)" or "")
+        end
+        local m = C_Map.GetBestMapForUnit("player")
+        local pos = m and C_Map.GetPlayerMapPosition(m, "player")
+        print("  player map:", MapText(m), pos and ("%.1f %.1f"):format(pos.x * 100, pos.y * 100) or "")
+        if WorldMapFrame and WorldMapFrame:GetMapID() then print("  world map:", MapText(WorldMapFrame:GetMapID())) end
+    elseif msg == "entrances" or msg == "entrees" then
+        DQF_DB.entrancePins = not DQF_DB.entrancePins
+        ns.EntrancePins:Refresh()
     else ns.UI:Toggle() end
 end

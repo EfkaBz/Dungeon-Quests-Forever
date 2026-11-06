@@ -70,7 +70,7 @@ local function BestReward(n)
     local best, bestPrice = 1, -1
     for i = 1, n do
         local link = GetQuestItemLink("choice", i)
-        local price = link and select(11, GetItemInfo(link)) or 0
+        local price = link and select(11, ns.GetItemInfo(link)) or 0
         if price > bestPrice then best, bestPrice = i, price end
     end
     return best
@@ -109,7 +109,7 @@ end
 -- Flight path: fly to the node closest to the next objective
 ----------------------------------------------------------------------
 local function ToMap(mapID, x, y, dispMap)
-    if mapID == dispMap then return x, y end
+    if mapID == dispMap or ns.SameZone(mapID, dispMap) then return x, y end
     local cont, world = C_Map.GetWorldPosFromMapPos(mapID, CreateVector2D(x, y))
     if not cont then return end
     local _, pos = C_Map.GetMapPosFromWorldPos(cont, world, dispMap)

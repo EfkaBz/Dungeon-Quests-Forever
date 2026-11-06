@@ -4,7 +4,7 @@ local O = {}
 ns.Options = O
 ns:RegisterModule(O)
 
-local W, H = 580, 520
+local W, H = 580, 560
 local COL_W = (W - 16 * 3) / 2   -- two columns
 local LINE = 24
 
@@ -14,6 +14,8 @@ local function Apply()
     ns.Arrow.frame:SetShown(DQF_DB.arrowShown)
     ns.ApplyTheme()
     O:ApplyAccent()
+    ns.EntrancePins:Refresh()
+    ns.WorldMapDungeon:Refresh()
     ns.Update()
 end
 
@@ -39,6 +41,7 @@ local function Section(parent, title, x, y, h)
     card:SetPoint("TOPLEFT", x, y)
     card:SetSize(COL_W, h)
     card:SetBackdropColor(0, 0, 0, 0.35)
+    if ns.BLIZZ then ns.Skin.MakeListBox(card) end
     card.title = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     card.title:SetPoint("TOPLEFT", 12, -10)
     card.title:SetText(title)
@@ -53,13 +56,19 @@ end
 
 -- Themed square checkbox with a clickable label
 local function Check(card, label, get, set, tip, x, w)
-    local c = ns.Panel(card, "bg", "CheckButton", true)
-    c:SetSize(16, 16)
-    c:SetPoint("TOPLEFT", x or 14, card.nextY)
-    c:SetBackdropColor(0, 0, 0, 0.6)
-    c:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
-    c:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
-    c:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    local c
+    if ns.BLIZZ then
+        c = ns.Skin.Check(card, 16) -- the game's check box
+        c:SetPoint("TOPLEFT", (x or 14) - 4, card.nextY + 4)
+    else
+        c = ns.Panel(card, "bg", "CheckButton", true)
+        c:SetSize(16, 16)
+        c:SetPoint("TOPLEFT", x or 14, card.nextY)
+        c:SetBackdropColor(0, 0, 0, 0.6)
+        c:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+        c:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
+        c:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    end
     c.label = c:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     c.label:SetPoint("LEFT", c, "RIGHT", 8, 0)
     c.label:SetWidth((w or COL_W) - 50); c.label:SetJustifyH("LEFT"); c.label:SetWordWrap(false)
@@ -169,8 +178,18 @@ end
 ----------------------------------------------------------------------
 function O:Build()
     self.cards, self.sliders = {}, {}
-    local f = ns.Panel(UIParent)
-    f:SetSize(W, H)
+    -- Blizzard theme: the game's portrait window on spellbook pages, the
+    -- sections as list boxes; the content is moved down under the portrait
+    local DY = ns.BLIZZ and -12 or 0
+    local f
+    if ns.BLIZZ then
+        f = ns.Skin.Window("DQF_OptionsFrame", "Dungeon Quests |cff33ff99Forever|r  -  " .. L("Options", "Options")
+            .. "  |cff9d9d9dv" .. ns.VERSION .. "|r")
+        ns.Skin.Parchment(f, 62)
+    else
+        f = ns.Panel(UIParent)
+    end
+    f:SetSize(W, H - DY)
     f:SetPoint("CENTER")
     f:SetFrameStrata("DIALOG")
     f:SetMovable(true); f:EnableMouse(true); f:SetClampedToScreen(true)
@@ -179,26 +198,29 @@ function O:Build()
     f:SetScript("OnDragStop", f.StopMovingOrSizing)
     tinsert(UISpecialFrames, "DQF_OptionsFrame")
     _G.DQF_OptionsFrame = f
+    ns.Anim.Window(f)
 
     -- Title bar
-    local top = ns.Panel(f, "bar")
-    top:SetPoint("TOPLEFT", 4, -4); top:SetPoint("TOPRIGHT", -4, -4); top:SetHeight(40)
-    top.icon = top:CreateTexture(nil, "ARTWORK")
-    top.icon:SetSize(26, 26); top.icon:SetPoint("LEFT", 10, 0)
-    top.icon:SetTexture("Interface\\AddOns\\Dungeon_Quests_Forever\\Media\\icon")
-    local title = top:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("LEFT", top.icon, "RIGHT", 10, 6)
-    title:SetText("Dungeon Quests |cff33ff99Forever|r")
-    local sub = top:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
-    sub:SetText(L("Options", "Options") .. "  -  v" .. ns.VERSION)
-    local close = CreateFrame("Button", nil, top, "UIPanelCloseButton")
-    close:SetPoint("RIGHT", -4, 0)
-    -- the default script hides the parent (the title bar), not the window
-    close:SetScript("OnClick", function() f:Hide() end)
+    if not ns.BLIZZ then
+        local top = ns.Panel(f, "bar")
+        top:SetPoint("TOPLEFT", 4, -4); top:SetPoint("TOPRIGHT", -4, -4); top:SetHeight(40)
+        top.icon = top:CreateTexture(nil, "ARTWORK")
+        top.icon:SetSize(26, 26); top.icon:SetPoint("LEFT", 10, 0)
+        top.icon:SetTexture("Interface\\AddOns\\Dungeon_Quests_Forever\\Media\\icon")
+        local title = top:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        title:SetPoint("LEFT", top.icon, "RIGHT", 10, 6)
+        title:SetText("Dungeon Quests |cff33ff99Forever|r")
+        local sub = top:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
+        sub:SetText(L("Options", "Options") .. "  -  v" .. ns.VERSION)
+        local close = CreateFrame("Button", nil, top, "UIPanelCloseButton")
+        close:SetPoint("RIGHT", -4, 0)
+        -- the default script hides the parent (the title bar), not the window
+        close:SetScript("OnClick", function() ns.Anim.Hide(f) end)
+    end
 
     -- Left column
-    local x1, x2, y0 = 16, 16 * 2 + COL_W, -58
+    local x1, x2, y0 = 16, 16 * 2 + COL_W, -58 + DY
     local disp = Section(f, L("Affichage", "Display"), x1, y0, 34 + LINE * 6 + 8)
     DBCheck(disp, L("Verrouiller les fenêtres", "Lock frames"), "locked",
         L("Empêche de déplacer et redimensionner les fenêtres.", "Prevents moving and resizing the frames."))
@@ -225,18 +247,43 @@ function O:Build()
         themes[#themes + 1] = { k, function() return ns.ThemeName(ns.THEMES[k]) end }
     end
     Selector(look, L("Thème", "Theme"), themes,
-        function() return DQF_DB.theme end, function(v) DQF_DB.theme = v; Apply() end)
-    Selector(look, L("Langue", "Language"), {
-            { "auto", function() return L("Auto (jeu)", "Auto (game)") end },
-            { "fr", function() return "Français" end },
-            { "en", function() return "English" end },
-        },
+        function() return DQF_DB.theme end, function(v)
+            DQF_DB.theme = v
+            Apply()
+            -- the Blizzard theme rebuilds the windows: reload to switch to/from it
+            if (v == "blizzard") ~= (ns.BLIZZ and true or false) then StaticPopup_Show("DQF_RELOAD_THEME") end
+        end,
+        L("Le thème Blizzard (jeu) reprend les fenêtres du jeu : le choisir ou le quitter recharge l'interface.",
+          "The Blizzard (game) theme uses the game's own windows: choosing it or leaving it reloads the UI."))
+    local langs = { { "auto", function() return L("Auto (jeu)", "Auto (game)") end } }
+    for _, l in ipairs(ns.LANGS) do
+        local name = l[3]
+        langs[#langs + 1] = { l[1], function() return name end }
+    end
+    Selector(look, L("Langue", "Language"), langs,
         function() return DQF_DB.lang or "auto" end,
         function(v) DQF_DB.lang = v; StaticPopup_Show("DQF_RELOAD") end,
-        L("Changer la langue recharge l'interface.", "Changing the language reloads the UI."))
+        L("Changer la langue recharge l'interface.\nLes textes des guides non traduits restent en anglais.\n"
+            .. "Le coréen et le chinois ne s'affichent que sur un client dans ces langues.",
+          "Changing the language reloads the UI.\nGuide texts not translated yet stay in English.\n"
+            .. "Korean and Chinese only display on a client in those languages."))
+
+    -- Journal and world map (right column, under Appearance)
+    local jour = Section(f, L("Dungeon Home et carte", "Dungeon Home and map"), x2, y0 - (34 + 44 * 2 + 30 * 2 + 4) - 10, 34 + LINE * 4 + 8)
+    DBCheck(jour, L("Toujours afficher les entrées", "Always show entrances"), "entrancePins",
+        L("Affiche toutes les entrées de donjon sur la carte du monde.", "Shows every dungeon entrance on the world map."))
+    DBCheck(jour, L("Boss sur la carte du donjon (M)", "Bosses on the dungeon map (M)"), "dungeonWorldMap",
+        L("Dans un donjon, la carte du monde montre les boss (positions apprises en jouant) et un bouton vers Dungeon Home.",
+          "Inside a dungeon, the world map shows the bosses (positions learned while playing) and a button to Dungeon Home."))
+    DBCheck(jour, L("Itinéraire automatique", "Automatic route"), "autoRoute",
+        L("Itinéraire vers l'entrée même sans trajet préparé : maître de vol le plus proche, puis l'entrée.",
+          "Route to the entrance even without a prepared one: closest flight master, then the entrance."))
+    DBCheck(jour, L("Alerte de nouvelle version", "New version alert"), "versionCheck",
+        L("Prévient dans le chat quand un membre du groupe ou de la guilde a une version plus récente.",
+          "Tells you in the chat when a group or guild member has a newer version."))
 
     -- Automation: full width, 2 columns x 2 rows
-    local auto = Section(f, L("Automatisation", "Automation"), x1, -378, 34 + LINE * 2 + 8)
+    local auto = Section(f, L("Automatisation", "Automation"), x1, -408 + DY, 34 + LINE * 2 + 8)
     auto:SetWidth(W - 32)
     local cw = (W - 32 - 28) / 2
     local entries = {
@@ -255,16 +302,8 @@ function O:Build()
         DBCheck(auto, e[1], e[2], e[3] .. "\n" .. L("(Maj enfoncée : désactivé)", "(hold Shift to disable)"), 14 + col * cw, cw)
     end
 
-    StaticPopupDialogs.DQF_RELOAD = {
-        text = L("Dungeon Quests Forever : recharger l'interface pour appliquer la langue ?",
-                 "Dungeon Quests Forever: reload the UI to apply the language?"),
-        button1 = ACCEPT, button2 = CANCEL,
-        OnAccept = ReloadUI,
-        timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
-    }
-
     -- Bottom bar
-    local bottom = ns.Panel(f, "bar")
+    local bottom = ns.BLIZZ and CreateFrame("Frame", nil, f) or ns.Panel(f, "bar")
     bottom:SetPoint("BOTTOMLEFT", 4, 4); bottom:SetPoint("BOTTOMRIGHT", -4, 4); bottom:SetHeight(38)
     local reset = Button(bottom, L("Réinitialiser la progression", "Reset progress"), 210)
     reset:SetPoint("LEFT", 10, 0)
@@ -295,10 +334,25 @@ end
 function O:Toggle(show)
     if not self.frame then self:Build() end
     if show == nil then show = not self.frame:IsShown() end
-    self.frame:SetShown(show)
+    ns.Anim.SetShown(self.frame, show)
 end
 
 function O:Init()
+    -- also used by the language button of the journal
+    StaticPopupDialogs.DQF_RELOAD = {
+        text = L("Dungeon Quests Forever : recharger l'interface pour appliquer la langue ?",
+                 "Dungeon Quests Forever: reload the UI to apply the language?"),
+        button1 = ACCEPT, button2 = CANCEL,
+        OnAccept = ReloadUI,
+        timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+    }
+    StaticPopupDialogs.DQF_RELOAD_THEME = {
+        text = L("Dungeon Quests Forever : recharger l'interface pour appliquer le thème ?",
+                 "Dungeon Quests Forever: reload the UI to apply the theme?"),
+        button1 = ACCEPT, button2 = CANCEL,
+        OnAccept = ReloadUI,
+        timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+    }
     StaticPopupDialogs.DQF_RESET = {
         text = L("Réinitialiser la progression manuelle de ce donjon ?", "Reset the manual progress of this dungeon?"),
         button1 = YES, button2 = NO,

@@ -1,19 +1,33 @@
 ## Interface: 11508, 11509, 11601, 16001
 ## Title: Dungeon Quests (Forever)
-## Notes: Tracks every dungeon quest and pre-quest, step by step
+## Notes: Tracks every dungeon quest and pre-quest, step by step, with Dungeon Home (bosses, loot, maps)
 ## Title-frFR: Dungeon Quests (Forever)
-## Notes-frFR: Suit toutes les quêtes et préquêtes de donjon, étape par étape
+## Notes-frFR: Suit toutes les quêtes et préquêtes de donjon, étape par étape, avec Dungeon Home (boss, butin, cartes)
 ## Author: Daeler
-## Version: 0.2.4
+## Version: 0.3.26
 ## Category: Daeler Addons
 ## X-Category: Quests
 ## IconTexture: Interface\AddOns\Dungeon_Quests_Forever\Media\icon_small
 ## SavedVariablesPerCharacter: DQF_DB
+## SavedVariables: DQF_Cache
 ## OptionalDeps: Questie, TomTom
 
-# Core: event bus, data model, progress
+# Languages (French/English texts are inline, other languages here)
+Core\Locale.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\itIT.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+
+# Core: event bus, data model, progress, quest info
 Core\Core.lua
 Core\Progress.lua
+Core\QuestInfo.lua
+Core\Attunements.lua
 
 # Optional integrations
 Integrations\Questie.lua
@@ -55,20 +69,90 @@ Guides\Dungeons\58-60_ShapersTerrace.lua
 Guides\Dungeons\58-60_Stratholme.lua
 Guides\Dungeons\59-60_UpperBlackrockSpire.lua
 
+# Quests and chains added later to the guides above
+Guides\QuestUpdates.lua
+Guides\QuestChains.lua
+
 # Over World guides (world quests with unique rewards)
 Guides\Over World\10-60_NightWatchmansTorch.lua
 Guides\Over World\14-60_CozySleepingBag.lua
+Guides\Over World\22-60_TomeOfDalaran.lua
 
-# User interface
+# Raid attunements (one file per raid)
+Guides\Attunements\1_UpperBlackrockSpire.lua
+Guides\Attunements\2_MoltenCore.lua
+Guides\Attunements\3_OnyxiasLair.lua
+Guides\Attunements\4_BlackwingLair.lua
+Guides\Attunements\5_Naxxramas.lua
+
+# Journal data: card art, quest rewards, bosses and loot (one file per dungeon)
+Data\DungeonInfo.lua
+Data\QuestRewards.lua
+Data\QuestUpdates.lua
+Data\QuestLevels.lua
+Data\QuestData.lua
+Data\NpcData.lua
+Data\BossFacts.lua
+Data\Bosses\13-18_HallOfThanes.lua
+Data\Bosses\13-18_RagefireChasm.lua
+Data\Bosses\15-20_RuinsOfLordaeron.lua
+Data\Bosses\17-24_WailingCaverns.lua
+Data\Bosses\17-26_Deadmines.lua
+Data\Bosses\22-30_ShadowfangKeep.lua
+Data\Bosses\24-29_Excavations.lua
+Data\Bosses\28-33_CityOfDalaran.lua
+Data\Bosses\24-32_BlackfathomDeeps.lua
+Data\Bosses\24-32_StormwindStockade.lua
+Data\Bosses\29-38_Gnomeregan.lua
+Data\Bosses\29-38_RazorfenKraul.lua
+Data\Bosses\30-38_SMGraveyard.lua
+Data\Bosses\33-41_SMLibrary.lua
+Data\Bosses\36-44_SMArmory.lua
+Data\Bosses\37-46_RazorfenDowns.lua
+Data\Bosses\38-46_SMCathedral.lua
+Data\Bosses\41-51_Uldaman.lua
+Data\Bosses\44-54_ZulFarrak.lua
+Data\Bosses\46-55_Maraudon.lua
+Data\Bosses\50-60_SunkenTemple.lua
+Data\Bosses\52-60_BlackrockDepths.lua
+Data\Bosses\54-60_DireMaulEast.lua
+Data\Bosses\55-60_LowerBlackrockSpire.lua
+Data\Bosses\56-60_DireMaulNorth.lua
+Data\Bosses\56-60_DireMaulWest.lua
+Data\Bosses\58-60_Scholomance.lua
+Data\Bosses\58-60_Stratholme.lua
+Data\Bosses\59-60_UpperBlackrockSpire.lua
+Data\BossUpdates.lua
+
+# User interface: step tracker
 UI\Theme.lua
+UI\Anim.lua
+UI\Skin.lua
 UI\MainWindow.lua
 UI\Arrow.lua
 UI\Minimap.lua
 UI\MapPins.lua
 UI\Targets.lua
 UI\ItemButton.lua
+UI\Items.lua
+
+# Dungeon journal (big window)
+UI\Journal\Widgets.lua
+UI\Journal\Journal.lua
+UI\Journal\Home.lua
+UI\Journal\Quests.lua
+UI\Journal\Bosses.lua
+UI\Journal\Map.lua
+UI\Journal\Search.lua
+UI\Journal\LootFilter.lua
+
+# World map: entrances, dungeon map pins, route
+UI\EntrancePins.lua
+UI\WorldMapDungeon.lua
+UI\Route.lua
 
 # Group sync, automation, options (need the UI)
 Core\Group.lua
 Core\Automation.lua
+Core\LootLearn.lua
 UI\Options.lua

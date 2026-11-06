@@ -1,0 +1,40 @@
+local _, ns = ...
+
+-- Bosses and loot of this dungeon. Only IDs are stored: names, quality,
+-- slots and icons are read from the game client at runtime.
+-- Source: public Classic / Forever loot tables. To verify in game at launch.
+ns:RegisterBosses("ULDA", {
+    instance = 70,
+    area = 1337,
+    bosses = {
+        { name = "Eric \"The Swift\"", npc = 6907, level = "40", display = 5708,
+          loot = { 9394, 9398, 2459 } },
+        { name = "Baelog", npc = 6906, level = "41", display = 5710,
+          loot = { 9401, 9399, 9400 } },
+        { name = "Olaf", npc = 6908, level = "40", display = 5709,
+          loot = { 9404, 9403, 1177 } },
+        { name = "Revelosh", npc = 6910, level = "40", display = 5945,
+          loot = { 9389, 9388, 9390, 9387, 7741 } },
+        { name = "Ironaya", npc = 7228, level = "40", display = 6089,
+          loot = { 9409, 9407, 9408 } },
+        { name = "Obsidian Sentinel", npc = 7023, level = "42", display = 5285,
+          loot = { 8053 } },
+        { name = "Ancient Stone Keeper", npc = 7206, level = "44", display = 10798,
+          loot = { 9410, 9411 } },
+        { name = "Galgann Firehammer", npc = 7291, level = "45", display = 6059,
+          loot = { 11310, 9412, 11311, 9419 } },
+        { name = "Grimlok", npc = 4854, level = "45", display = 11165,
+          loot = { 9415, 9416, 9414, 7670 } },
+        { name = "Archaedas", npc = 2748, level = "47", display = 5988,
+          loot = { 11118, 9413, 9418 } },
+        { name = "Baelog's Chest", extra = true,
+          loot = { 7740 } },
+        { name = "Conspicuous Urn", extra = true,
+          loot = { 7671 } },
+        { name = "Shadowforge Cache", extra = true,
+          loot = { 7669 } },
+        { name = "Tablet of Will", extra = true,
+          loot = { 5824 } },
+    },
+    trash = { 9431, 9429, 9420, 9430, 9397, 9406, 9428, 9432, 9396, 9393, 7666, 9381, 9426, 9422, 9465, 9384, 9386, 9427, 9392, 9424, 9383, 9425, 9423, 9391 },
+})

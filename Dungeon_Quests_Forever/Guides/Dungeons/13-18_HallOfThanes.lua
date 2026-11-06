@@ -24,7 +24,7 @@ N.durgen   = { id = 0, name = L("Durgen Mornemartel", "Durgen Dirgehammer"), ene
 
 ns:RegisterDungeon("THANES", function() return {
     name = L("La salle des Thanes", "The Hall of Thanes"),
-    levels = "13-18",
+    levels = "13-20",
     new = true, -- new in Forever
     icon = "Interface\\Icons\\INV_Hammer_05",
     entrance = { map = 1455, x = 43.5, y = 52.0 }, -- Great Forge, corridor left of Magni's throne
@@ -43,7 +43,7 @@ ns:RegisterDungeon("THANES", function() return {
         A(96390, "farsen", AL()),
         D(96390, L("Tuer 10 espions Sombrefer (Domaine des Ironband)", "Kill 10 Dark Iron Spies (Ironband's Compound)"),
             AL({ map = 1426, x = 76.7, y = 60.7, targets = { "darkspy" } })),
-        A(96391, nil, AL({ text = L("Carte Sombrefer : sur le capitaine espion, dans la maison du Domaine des Ironband", "Dark Iron Map: from the spy captain, in the house at Ironband's Compound"),
+        A(96391, nil, AL({ text = L("Carte Sombrefer : sur un espion du Domaine des Ironband, à utiliser depuis le sac", "Dark Iron Map: drops from a spy at Ironband's Compound, use it from your bags"),
             map = 1426, x = 76.7, y = 60.7 })),
         T(96390, "farsen", AL()),
         T(96391, "farsen", AL()),
@@ -55,12 +55,12 @@ ns:RegisterDungeon("THANES", function() return {
         A(96394, "afadra", AL()),
         A(96403, "thom"),
         -- Inside the dungeon
-        A(96395, "attendant"),
-        D(96403, L("8 héritages nains", "8 Dwarven Heirlooms")),
+        A(96395, "attendant", { text = L("Serviteur fantomatique, deuxième salle du donjon", "Ghostly Attendant, second room of the dungeon") }),
+        D(96403, L("8 héritages nains : plateformes en hauteur éclairées de bougies dans les couloirs. Les chambres fortes de la dernière salle en ont assez pour tout le groupe", "8 Dwarven Heirlooms: raised candle-lit platforms in the corridors. The vaults in the final room hold enough for the whole group")),
         D(96394, L("Tuer 15 apparitions enragées, 10 âmes tourmentées et Faldrim", "Kill 15 Enraged Apparitions, 10 Tormented Souls and Faldrim"),
             AL({ targets = { "faldrim" } })),
         D(96395, L("Vaincre Faldrim Courbenclume", "Defeat Faldrim Anvilmar"), { targets = { "faldrim" } }),
-        T(96395, "attendant"),
+        T(96395, "attendant", { text = L("Sur le chemin de la sortie : ne pas utiliser sa pierre de foyer avant", "On the way out: do not use your hearthstone before") }),
         D(96393, L("Tête de Durgen Mornemartel", "Head of Durgen Dirgehammer"), AL({ targets = { "durgen" } })),
         A(98423, nil, AL({ text = L("Tablette de pierre derrière la porte scellée (salle finale)", "Stone tablet behind the sealed door (final room)") })),
         -- Turn-ins (Ironforge)

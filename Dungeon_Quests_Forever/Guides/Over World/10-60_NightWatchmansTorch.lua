@@ -16,7 +16,7 @@ ns:RegisterDungeon("TORCH", function() return {
     levels = "10-60",
     overworld = true,
     new = true,
-    icon = "Interface\Icons\INV_Torch_Lit",
+    icon = "Interface\\Icons\\INV_Torch_Lit",
     entrance = SPOT,
     titles = {
         [98372] = L("Une fin malheureuse", "An Unfortunate End"),

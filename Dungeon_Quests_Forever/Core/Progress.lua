@@ -10,8 +10,28 @@ local function Flagged(q)
 end
 
 function P.LogIndex(q)
-    local i = GetQuestLogIndexByID and GetQuestLogIndexByID(q)
+    local i
+    if GetQuestLogIndexByID then i = GetQuestLogIndexByID(q)
+    elseif C_QuestLog and C_QuestLog.GetLogIndexForQuestID then i = C_QuestLog.GetLogIndexForQuestID(q) end
     if i and i > 0 then return i end
+end
+
+-- Forever runs on the retail engine: the old quest log functions (GetQuestLogTitle,
+-- SelectQuestLogEntry...) only exist when another addon, like Questie, adds them back.
+-- Selects a quest of the log; call the returned function to put the old selection back.
+function P.SelectInLog(q)
+    local i = P.LogIndex(q)
+    if i and SelectQuestLogEntry then
+        local prev = GetQuestLogSelection and GetQuestLogSelection()
+        SelectQuestLogEntry(i)
+        return function() SelectQuestLogEntry(prev or 0) end
+    end
+    if i and C_QuestLog and C_QuestLog.SetSelectedQuest then
+        local prev = C_QuestLog.GetSelectedQuest and C_QuestLog.GetSelectedQuest()
+        C_QuestLog.SetSelectedQuest(q)
+        return function() C_QuestLog.SetSelectedQuest(prev or 0) end
+    end
+    return function() end
 end
 
 -- Followers: quests that require q (built from Questie's prerequisites for
@@ -30,7 +50,10 @@ local function Followers()
             end
         end
     end
-    if any then followers = t end -- Questie may not be ready yet: retry later
+    followers = t
+    -- Questie may not be ready yet: rebuild a little later (not on every
+    -- call, the full scan is too slow to repeat)
+    if not any then C_Timer.After(5, function() followers = nil end) end
     return t
 end
 
@@ -53,13 +76,15 @@ function P.ObjectivesDone(q)
         if ok and done then return true end
     end
     -- Classic: GetQuestLogTitle -> title, level, tag, isHeader, isCollapsed, isComplete, ...
-    local isComplete = select(6, GetQuestLogTitle(i))
-    if isComplete == 1 or isComplete == true then return true end
+    if GetQuestLogTitle then
+        local isComplete = select(6, GetQuestLogTitle(i))
+        if isComplete == 1 or isComplete == true then return true end
+    end
     -- fallback: every objective finished
-    local n = GetNumQuestLeaderBoards(i) or 0
-    if n == 0 then return false end
-    for j = 1, n do
-        if not select(3, GetQuestLogLeaderBoard(j, i)) then return false end
+    local objectives = P.Objectives(q)
+    if not objectives or #objectives == 0 then return false end
+    for _, o in ipairs(objectives) do
+        if not o.done then return false end
     end
     return true
 end
@@ -69,9 +94,15 @@ function P.Objectives(q)
     local i = P.LogIndex(q)
     if not i then return end
     local t = {}
-    for j = 1, GetNumQuestLeaderBoards(i) or 0 do
-        local text, _, finished = GetQuestLogLeaderBoard(j, i)
-        if text then t[#t + 1] = { text = text, done = finished } end
+    if GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
+        for j = 1, GetNumQuestLeaderBoards(i) or 0 do
+            local text, _, finished = GetQuestLogLeaderBoard(j, i)
+            if text then t[#t + 1] = { text = text, done = finished } end
+        end
+    elseif C_QuestLog and C_QuestLog.GetQuestObjectives then
+        for _, o in ipairs(C_QuestLog.GetQuestObjectives(q) or {}) do
+            if o.text then t[#t + 1] = { text = o.text, done = o.finished } end
+        end
     end
     return t
 end
@@ -88,6 +119,18 @@ end
 --  do     : objectives complete or turned in
 --  talk / turnin : quest turned in
 function P.IsAutoDone(step)
+    -- steps without quest (quest = 0): done when one of `haveItems` is in the bags
+    if not step.quest or step.quest == 0 then
+        local count = (C_Item and C_Item.GetItemCount) or GetItemCount
+        -- items seen once stay validated (the tome is used up by the summon)
+        DQF_DB.seenItems = DQF_DB.seenItems or {}
+        for _, id in ipairs(step.haveItems or {}) do
+            if DQF_DB.seenItems[id] then return true end
+            local ok, c = pcall(count, id)
+            if ok and c and c > 0 then DQF_DB.seenItems[id] = true; return true end
+        end
+        return false
+    end
     local st = P.QuestState(step.quest)
     if st == 3 then return true end
     if step.type == "accept" then return st >= 1 end
@@ -95,9 +138,8 @@ function P.IsAutoDone(step)
         if st == 2 then return true end
         -- only one objective of the quest (e.g. one boss per Scarlet Monastery wing)
         if st == 1 and step.objIndex then
-            local i = P.LogIndex(step.quest)
-            local ok, _, _, finished = pcall(GetQuestLogLeaderBoard, step.objIndex, i)
-            return ok and finished and true or false
+            local objective = (P.Objectives(step.quest) or {})[step.objIndex]
+            return objective and objective.done and true or false
         end
     end
     return false
@@ -154,9 +196,12 @@ function P.Evaluate(d)
     local done, cur = 0, nil
     d.list = {}
     local faction = UnitFactionGroup("player")
+    local _, class = UnitClass("player")
     for _, s in ipairs(d.steps) do
-      -- steps of the other faction are never shown (they cannot be done)
-      if not s.faction or s.faction == faction then
+      -- steps of the other faction or another class are never shown (they cannot
+      -- be done); quests started by a random drop only once they are started
+      if (not s.faction or s.faction == faction) and (not s.class or s.class == class)
+          and (not s.onlyIfStarted or manual[s.uid] ~= nil or P.QuestState(s.quest) > 0) then
         s.auto = P.IsAutoDone(s)
         -- a quest already turned in always validates its steps, even if they
         -- were unchecked by hand earlier

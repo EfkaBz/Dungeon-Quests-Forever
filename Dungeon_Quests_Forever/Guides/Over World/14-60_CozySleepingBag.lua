@@ -22,7 +22,7 @@ ns:RegisterDungeon("SLEEPINGBAG", function() return {
     name = L("Sac de couchage douillet", "Cozy Sleeping Bag"),
     levels = "14-60",
     overworld = true,
-    icon = "Interface\Icons\INV_Misc_Bag_08",
+    icon = "Interface\\Icons\\INV_Misc_Bag_08",
     titles = {
         [79007] = L("...et cette note que vous avez trouvée", "...and that note you found"),
         [79008] = L("...et cette note que vous avez trouvée", "...and that note you found"),

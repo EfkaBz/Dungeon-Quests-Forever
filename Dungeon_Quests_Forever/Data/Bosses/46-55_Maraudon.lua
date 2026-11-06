@@ -1,0 +1,41 @@
+local _, ns = ...
+
+-- Bosses and loot of this dungeon. Only IDs are stored: names, quality,
+-- slots and icons are read from the game client at runtime.
+-- Source: public Classic / Forever loot tables. To verify in game at launch.
+ns:RegisterBosses("MARA", {
+    instance = 349,
+    area = 2100,
+    bosses = {
+        { name = "Veng", npc = 13738, display = 9418,
+          loot = { 17765 } },
+        { name = "Noxxion", npc = 13282, level = "48", display = 11172,
+          loot = { 17746, 17744, 17745 } },
+        { name = "Razorlash", npc = 12258, level = "48", display = 12389,
+          loot = { 17749, 17748, 17750, 17751 } },
+        { name = "Maraudos", npc = 13739, display = 9441,
+          loot = { 17764 } },
+        { name = "Lord Vyletongue", npc = 12236, level = "47", display = 12334,
+          loot = { 17755, 17754, 17752 } },
+        { name = "Meshlok the Harvester", npc = 12237, level = "48", display = 9014, rare = true,
+          loot = { 17767, 17741, 17742 } },
+        { name = "Celebras the Cursed", npc = 12225, level = "49", display = 12350,
+          loot = { 17740, 17739, 17738 } },
+        { name = "Landslide", npc = 12203, level = "50", display = 12293,
+          loot = { 17734, 17736, 17737, 17943 } },
+        { name = "Tinkerer Gizlock", npc = 13601, level = "50", display = 7125,
+          loot = { 17718, 17717, 17719 } },
+        { name = "Rotgrip", npc = 13596, level = "50", display = 13589,
+          loot = { 17732, 17728, 17730 } },
+        { name = "Princess Theradras", npc = 12201, level = "51", display = 12292,
+          loot = { 17780, 17715, 17707, 17714, 17711, 17713, 17710, 17766 } },
+        { name = "The Nameless Prophet", npc = 13718, display = 9426, extra = true,
+          loot = { 17757 } },
+        { name = "Kolk", npc = 13742, display = 4860, extra = true,
+          loot = { 17761 } },
+        { name = "Gelk", npc = 13741, display = 9427, extra = true,
+          loot = { 17762 } },
+        { name = "Magra", npc = 13740, display = 9433, extra = true,
+          loot = { 17763 } },
+    },
+})

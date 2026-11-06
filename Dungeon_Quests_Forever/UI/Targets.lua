@@ -82,6 +82,7 @@ function T:Init()
         f.stripe:SetColorTexture(t.accent[1], t.accent[2], t.accent[3], 1)
     end
     f.ApplyTheme()
+    if ns.BLIZZ then ns.Skin.SmallFrame(f) end
 
     self.frame, self.rows = f, {}
     for i = 1, MAX do self.rows[i] = CreateRow(f.body, i) end

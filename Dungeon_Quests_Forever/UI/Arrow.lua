@@ -6,8 +6,34 @@ ns:RegisterModule(A)
 
 local ARRIVED_YARDS = 6
 
+-- Forever redrew some zones (Hillsbrad Foothills with Alterac...): new
+-- uiMapID, same coordinates, but the Classic map ID still converts to the
+-- old world placement. A point given on a map is therefore read on the
+-- zone map of the same name (the one the player is in / is looking at).
+local zoneInfo = {}
+local function Info(id)
+    if not id then return end
+    if zoneInfo[id] == nil then zoneInfo[id] = C_Map.GetMapInfo(id) or false end
+    return zoneInfo[id] or nil
+end
+function ns.SameZone(a, b)
+    if not a or not b then return false end
+    if a == b then return true end
+    local ia, ib = Info(a), Info(b)
+    return ia and ib and ia.name == ib.name and ia.mapType == ib.mapType or false
+end
+
+-- map to use for a point of mapID: the player's current zone map when it is
+-- the same zone under another ID
+local function LiveMap(mapID)
+    local m = C_Map.GetBestMapForUnit("player")
+    if m and m ~= mapID and ns.SameZone(mapID, m) then return m end
+    return mapID
+end
+
 -- World position (continent, x, y) of a map point; x = north, y = west
 function ns.WorldPos(mapID, x, y)
+    mapID = LiveMap(mapID)
     local cont, pos = C_Map.GetWorldPosFromMapPos(mapID, CreateVector2D(x, y))
     if cont and pos then return cont, pos.x, pos.y end
 end
@@ -87,15 +113,22 @@ end
 function A:Tick()
     local f = self.frame
     local inInstance = IsInInstance()
-    if not self.mapID or inInstance then
+    -- an active route to a dungeon wins over the current step
+    local rMap, rx, ry, rLabel
+    if ns.Route then rMap, rx, ry, rLabel = ns.Route:ArrowTarget() end
+    if not (self.mapID or rMap) or inInstance then
         f.tex:SetAlpha(0)
         f.title:SetText(inInstance and L("Dans le donjon", "In dungeon") or "")
         f.dist:SetText("")
         return
     end
-    f.title:SetText(self.label or "")
+    f.title:SetText((rMap and rLabel) or self.label or "")
 
     local pc, px, py = ns.PlayerWorldPos()
+    if rMap then
+        self:Point(pc, px, py, rMap, rx, ry)
+        return
+    end
     -- several places for the step: point to the closest one
     if pc and self.spots and #self.spots > 1 then
         local best
@@ -107,12 +140,18 @@ function A:Tick()
             end
         end
     end
-    local tc, tx, ty = ns.WorldPos(self.mapID, self.x, self.y)
+    self:Point(pc, px, py, self.mapID, self.x, self.y)
+end
+
+-- Turns the arrow from the player (world position) toward a map point (0-1)
+function A:Point(pc, px, py, mapID, x, y)
+    local f = self.frame
+    local tc, tx, ty = ns.WorldPos(mapID, x, y)
     local facing = GetPlayerFacing()
     if not (tc and pc and facing) or tc ~= pc then
         -- other continent / unknown position: no direction
         f.tex:SetAlpha(0.3); f.tex:SetRotation(0); f.tex:SetVertexColor(1, 1, 1)
-        f.dist:SetText(ns.ZoneName(self.mapID))
+        f.dist:SetText(ns.ZoneName(mapID))
         return
     end
 

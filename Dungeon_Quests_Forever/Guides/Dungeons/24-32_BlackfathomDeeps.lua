@@ -16,7 +16,7 @@ N.gerrig    = { id = 2786,  name = "Gerrig Bonegrip",        map = 1455, x = 50.
 N.shaedlass = { id = 4786,  name = "Dawnwatcher Shaedlass",  map = 1457, x = 55.4, y = 25.0 }
 N.manados   = { id = 4784,  name = "Argent Guard Manados",   map = 1457, x = 55.2, y = 24.0 }
 N.selgorm   = { id = 4783,  name = "Dawnwatcher Selgorm",    map = 1457, x = 56.2, y = 24.4 }
-N.argos     = { id = 4984,  name = "Argos Nightwhisper",     map = 1453, x = 21.4, y = 55.8 }
+N.argos     = { id = 4984,  name = "Argos Nightwhisper",     map = 1453, x = 36.3, y = 67.4, forever = true } -- Forever Stormwind
 N.gershala  = { id = 8997,  name = "Gershala Nightwhisper",  map = 1439, x = 38.3, y = 43.0 }
 N.tsunaman  = { id = 11862, name = "Tsunaman",               map = 1442, x = 47.4, y = 64.3 }
 N.jeneu     = { id = 12736, name = "Je'neu Sancrea",         map = 1440, x = 11.6, y = 34.3 }
@@ -82,15 +82,14 @@ ns:RegisterDungeon("BFD", function() return {
         A(6561, "thaelrid", H()),
         A(6564, nil, H({ text = L("Note humide sur les prêtresses des marées (lance « Allégeance aux Dieux très anciens »)", "Damp Note from Blackfathom Tide Priestesses (starts Allegiance to the Old Gods)"),
             targets = { "tidepriestess" } })),
-        A(6922, nil, H({ text = L("Baron Aquanis (fontaine) : ramasser le globe d'eau étrange", "Baron Aquanis (fountain): loot the Strange Water Globe"),
-            targets = { "aquanis" } })),
-        D(6921, L("Noyau des profondeurs (pierre des profondeurs)", "Fathom Core (Fathom Stone)"), H()),
+        -- Forever: Baron Aquanis gives the Fathom Core (no Strange Water Globe anymore)
+        D(6921, L("Baron Aquanis (fontaine) : ramasser le noyau des profondeurs", "Baron Aquanis (fountain): loot the Fathom Core"),
+            H({ targets = { "aquanis" } })),
         D(1200, L("Tuer le seigneur du Crépuscule Kelris : sa tête", "Kill Twilight Lord Kelris: his head"), AL({ targets = { "kelris" } })),
         D(6561, L("Tuer le seigneur du Crépuscule Kelris : sa tête", "Kill Twilight Lord Kelris: his head"), H({ targets = { "kelris" } })),
         -- Horde turn-ins (Zoram'gar), then back inside for Lorgus Jett
         T(6563, "jeneu", H()),
         T(6921, "jeneu", H()),
-        T(6922, "jeneu", H()),
         T(6564, "jeneu", H()),
         A(6565, "jeneu", H()),
         D(6565, L("Tuer Lorgus Jett (dans le donjon)", "Kill Lorgus Jett (in the dungeon)"), H({ targets = { "lorgus" } })),

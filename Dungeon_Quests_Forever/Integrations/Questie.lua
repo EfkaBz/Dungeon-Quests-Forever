@@ -4,9 +4,10 @@ local Q = {}
 ns.Questie = Q
 ns:RegisterModule(Q)
 
--- Optional integration: when Questie is loaded, use its database for
--- NPC coordinates and quest levels. Everything is wrapped in pcall so a
--- Questie update can never break this addon.
+-- Quest and NPC data. The addon carries its own (Data\QuestData.lua, Data\NpcData.lua,
+-- Data\QuestLevels.lua) and works without Questie. When Questie is loaded it only fills
+-- what is missing here. Everything is wrapped in pcall so a Questie update can never
+-- break this addon.
 local DB, ZoneDB
 
 local function Ready()
@@ -29,6 +30,7 @@ end
 
 -- Prerequisite quest IDs of q (preQuestSingle + preQuestGroup)
 function Q.Prerequisites(q)
+    if ns.QUEST_PREREQS and ns.QUEST_PREREQS[q] then return ns.QUEST_PREREQS[q] end
     local out = {}
     for _, key in ipairs({ "preQuestSingle", "preQuestGroup" }) do
         local v = Query(DB and DB.QueryQuestSingle, q, key)
@@ -39,12 +41,83 @@ function Q.Prerequisites(q)
     return out
 end
 
+-- Offline list first (Data/QuestLevels.lua): it has the Forever quests
 function Q.RequiredLevel(q)
+    local t = ns.QUEST_LEVELS and ns.QUEST_LEVELS[q]
+    if t and t[2] then return t[2] end
     return Query(DB and DB.QueryQuestSingle, q, "requiredLevel")
 end
 
+function Q.QuestLevel(q)
+    local t = ns.QUEST_LEVELS and ns.QUEST_LEVELS[q]
+    if t and t[1] then return t[1] end
+    return Query(DB and DB.QueryQuestSingle, q, "questLevel")
+end
+
+-- English quest name (fallback when the client does not know the quest)
+function Q.QuestName(q)
+    return Query(DB and DB.QueryQuestSingle, q, "name")
+end
+
+-- True when Questie is loaded and has this quest (it then makes its chat text clickable)
+function Q.QuestieKnows(q)
+    return Q.QuestName(q) ~= nil
+end
+
+-- Quest description lines ("Bring 10 Red Silk Bandanas to...")
+function Q.ObjectivesText(q)
+    local t = Query(DB and DB.QueryQuestSingle, q, "objectivesText")
+    if type(t) == "table" then return table.concat(t, "\n") end
+    return ns.QUEST_OBJECTIVES and ns.QUEST_OBJECTIVES[q]
+end
+
+-- Classes allowed to take the quest (bitmask, nil = every class)
+function Q.RequiredClasses(q)
+    if ns.QUEST_CLASSES and ns.QUEST_CLASSES[q] then return ns.QUEST_CLASSES[q] end
+    local v = Query(DB and DB.QueryQuestSingle, q, "requiredClasses")
+    if type(v) == "number" and v > 0 then return v end
+end
+
+-- XP and money given by the quest (Questie's quest XP database)
+local XP
+local function XPModule()
+    if XP ~= nil then return XP or nil end
+    XP = false
+    if QuestieLoader then
+        local ok, m = pcall(QuestieLoader.ImportModule, QuestieLoader, "QuestXP")
+        if ok and m and m.GetQuestLogRewardXP then XP = m end
+    end
+    return XP or nil
+end
+-- XP at the player's level, from the XP at the level of the quest (Classic formula)
+local function AdjustedXP(q)
+    local t = ns.QUEST_XP and ns.QUEST_XP[q]
+    if not t then return end
+    local level = UnitLevel("player")
+    if GetMaxPlayerLevel and level >= GetMaxPlayerLevel() then return end
+    local xp = t[2] * math.max(1, math.min(10, 2 * (t[1] - level) + 20)) / 10
+    if xp <= 100 then return 5 * math.floor((xp + 2) / 5) end
+    if xp <= 500 then return 10 * math.floor((xp + 5) / 10) end
+    if xp <= 1000 then return 25 * math.floor((xp + 12) / 25) end
+    return 50 * math.floor((xp + 25) / 50)
+end
+function Q.RewardXP(q)
+    local m = XPModule()
+    if m then
+        local ok, v = pcall(m.GetQuestLogRewardXP, m, q)
+        if ok and type(v) == "number" and v > 0 then return v end
+    end
+    local xp = AdjustedXP(q)
+    if xp and xp > 0 then return xp end
+end
+function Q.RewardMoney(q)
+    if not GetQuestLogRewardMoney then return end
+    local ok, v = pcall(GetQuestLogRewardMoney, q)
+    if ok and type(v) == "number" and v > 0 then return v end
+end
+
 function Q.QuestLevels(q)
-    local lvl = Query(DB and DB.QueryQuestSingle, q, "questLevel")
+    local lvl = Q.QuestLevel(q)
     local req = Q.RequiredLevel(q)
     if lvl and req then return (L("Niveau %d (requis : %d)", "Level %d (required: %d)")):format(lvl, req) end
 end
@@ -57,6 +130,7 @@ local areaCache = {}
 function Q.SpawnAreas(npcIDs)
     local key = table.concat(npcIDs, ",")
     if areaCache[key] then return areaCache[key] end
+    if ns.SPAWN_AREAS and ns.SPAWN_AREAS[key] then return ns.SPAWN_AREAS[key] end
     if not Ready() then return end
     local clusters, total = {}, 0
     for _, id in ipairs(npcIDs) do
@@ -98,11 +172,13 @@ function Q.SpawnAreas(npcIDs)
     return out
 end
 
--- Replace NPC coordinates with Questie's first spawn (more reliable)
+-- Replace NPC coordinates with Questie's first spawn (more reliable).
+-- NPCs flagged forever = true keep their coordinates: they were taken in
+-- WoW Forever, where some maps (Stormwind, Redridge) differ from Questie's.
 local function RefreshNPCs()
     local changed = false
     for _, npc in pairs(ns.NPCS) do
-        local spawns = Query(DB.QueryNPCSingle, npc.id, "spawns")
+        local spawns = not npc.forever and Query(DB.QueryNPCSingle, npc.id, "spawns")
         if type(spawns) == "table" then
             for areaId, coords in pairs(spawns) do
                 local c = coords[1]
@@ -119,6 +195,11 @@ local function RefreshNPCs()
 end
 
 function Q:Init()
+    -- positions carried by the addon (NPCs flagged forever keep theirs)
+    for _, npc in pairs(ns.NPCS) do
+        local p = not npc.forever and ns.NPC_SPAWNS and ns.NPC_SPAWNS[npc.id]
+        if p then npc.map, npc.x, npc.y = p[1], p[2], p[3] end
+    end
     -- Questie builds its DB a few seconds after login
     local tries = 0
     local function attempt()

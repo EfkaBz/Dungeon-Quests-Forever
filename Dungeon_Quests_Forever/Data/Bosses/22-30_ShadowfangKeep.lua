@@ -1,0 +1,42 @@
+local _, ns = ...
+
+-- Bosses and loot of this dungeon. Only IDs are stored: names, quality,
+-- slots and icons are read from the game client at runtime.
+-- Source: public Classic / Forever loot tables. To verify in game at launch.
+ns:RegisterBosses("SFK", {
+    instance = 33,
+    area = 209,
+    bosses = {
+        { name = "Rethilgore", npc = 3914, level = "20", display = 524,
+          loot = { 5254, 273456, 273457 } },
+        { name = "Fel Steed / Shadow Charger", npc = { 3865, 3864 }, level = "19-20", display = 1952,
+          loot = { 6341, 932 } },
+        { name = "Razorclaw the Butcher", npc = 3886, level = "22", display = 524,
+          loot = { 1292, 6226, 6633 } },
+        { name = "Baron Silverlaine", npc = 3887, level = "24", display = 3222,
+          loot = { 6321, 6323, 273637, 277490, 276631 } },
+        { name = "Commander Springvale", npc = 4278, level = "24", display = 3223,
+          loot = { 6320, 3191, 273643 } },
+        { name = "Odo the Blindwatcher", npc = 4279, level = "24", display = 522,
+          loot = { 6318, 6319, 273645 } },
+        { name = "Deathsworn Captain", npc = 3872, level = "25", display = 3224, rare = true,
+          loot = { 6642, 6641 } },
+        { name = "Arugal's Voidwalker", npc = 4627, level = "24-25", display = 1131,
+          loot = { 5943 } },
+        { name = "Fenrus the Devourer", npc = 4274, level = "25", display = 2352,
+          loot = { 6340, 3230, 273646 } },
+        { name = "Wolf Master Nandos", npc = 3927, level = "25", display = 11179,
+          loot = { 3748, 6314, 273647 } },
+        { name = "Archmage Arugal", npc = 4275, level = "25", display = 2353,
+          loot = { 6324, 6392, 6220 } },
+        { name = "Sever", npc = 14682, display = 1061, extra = true,
+          loot = { 23173, 23171 } },
+        { name = "Apothecary Hummel <Crown Chemical Co.>", npc = 36296, level = "83", display = 31167, extra = true,
+          loot = { 51804, 51805, 51806, 51807, 51808, 49641, 49715, 50250, 50446, 50471, 50741 } },
+        { name = "Jordan's Smithing Hammer", extra = true,
+          loot = { 6895 } },
+        { name = "The Book of Ur", extra = true,
+          loot = { 6283 } },
+    },
+    trash = { 2292, 1489, 1974, 2807, 1482, 1935, 1483, 1318, 3194, 2205, 1484 },
+})

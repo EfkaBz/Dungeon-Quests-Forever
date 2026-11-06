@@ -1,5 +1,5 @@
 local ADDON, ns = ...
-ns.VERSION = "0.3.26"
+ns.VERSION = "0.3.27"
 ns.dungeons, ns.dungeonOrder, ns.NPCS = {}, {}, {}
 -- Language functions (ns.L, ns.Lang, ns.IsFR...) live in Core\Locale.lua.
 -- Saved variables are only available after ADDON_LOADED, so every text
@@ -8,7 +8,7 @@ local L = ns.L
 
 local DEFAULTS = {
     lang = "auto",
-    autoQuest = true, autoRewards = false, autoFlight = true, skipGossip = true,
+    autoQuest = true, autoRewards = false, autoFlight = false, skipGossip = true,
     shown = true, arrowShown = true, minimapShown = true, minimapAngle = 200,
     targetsShown = true, mapPins = true, minimapPins = true,
     hideDone = false, autoFollow = true, locked = false,
@@ -439,6 +439,12 @@ ns:On("ADDON_LOADED", function(name)
     DQF_DB = DQF_DB or {}
     for k, v in pairs(DEFAULTS) do
         if DQF_DB[k] == nil then DQF_DB[k] = type(v) == "table" and {} or v end
+    end
+    -- Automatic flights are opt-in since 0.3.27. The old default (on) is saved
+    -- in existing profiles, so it is turned off once; ticking it again sticks.
+    if not DQF_DB.autoFlightOptIn then
+        DQF_DB.autoFlight = false
+        DQF_DB.autoFlightOptIn = true
     end
     -- "Blizzard (game)" theme: windows are built with the game's components
     -- (fixed for the session, changing it reloads the UI)

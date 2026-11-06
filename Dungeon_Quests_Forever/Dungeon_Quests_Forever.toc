@@ -4,7 +4,7 @@
 ## Title-frFR: Dungeon Quests (Forever)
 ## Notes-frFR: Suit toutes les quêtes et préquêtes de donjon, étape par étape, avec Dungeon Home (boss, butin, cartes)
 ## Author: Daeler
-## Version: 0.3.26
+## Version: 0.3.27
 ## Category: Daeler Addons
 ## X-Category: Quests
 ## IconTexture: Interface\AddOns\Dungeon_Quests_Forever\Media\icon_small

@@ -4,7 +4,7 @@
 ## Title-frFR: Dungeon Quests (Forever)
 ## Notes-frFR: Suit toutes les quêtes et préquêtes de donjon, étape par étape, avec Dungeon Home (boss, butin, cartes)
 ## Author: Daeler
-## Version: 0.3.27
+## Version: 0.3.28
 ## Category: Daeler Addons
 ## X-Category: Quests
 ## IconTexture: Interface\AddOns\Dungeon_Quests_Forever\Media\icon_small
@@ -72,6 +72,8 @@ Guides\Dungeons\59-60_UpperBlackrockSpire.lua
 # Quests and chains added later to the guides above
 Guides\QuestUpdates.lua
 Guides\QuestChains.lua
+Guides\QuestUpdatesLaunch.lua
+Guides\QuestUpdates208.lua
 
 # Over World guides (world quests with unique rewards)
 Guides\Over World\10-60_NightWatchmansTorch.lua
@@ -107,22 +109,28 @@ Data\Bosses\29-38_Gnomeregan.lua
 Data\Bosses\29-38_RazorfenKraul.lua
 Data\Bosses\30-38_SMGraveyard.lua
 Data\Bosses\33-41_SMLibrary.lua
+Data\Bosses\35-40_DrownedCity.lua
 Data\Bosses\36-44_SMArmory.lua
 Data\Bosses\37-46_RazorfenDowns.lua
 Data\Bosses\38-46_SMCathedral.lua
+Data\Bosses\40-45_KroldokStronghold.lua
 Data\Bosses\41-51_Uldaman.lua
 Data\Bosses\44-54_ZulFarrak.lua
 Data\Bosses\46-55_Maraudon.lua
+Data\Bosses\48-53_AlcazPrison.lua
 Data\Bosses\50-60_SunkenTemple.lua
 Data\Bosses\52-60_BlackrockDepths.lua
 Data\Bosses\54-60_DireMaulEast.lua
+Data\Bosses\55-60_BlackmawHold.lua
 Data\Bosses\55-60_LowerBlackrockSpire.lua
 Data\Bosses\56-60_DireMaulNorth.lua
 Data\Bosses\56-60_DireMaulWest.lua
 Data\Bosses\58-60_Scholomance.lua
+Data\Bosses\58-60_ShapersTerrace.lua
 Data\Bosses\58-60_Stratholme.lua
 Data\Bosses\59-60_UpperBlackrockSpire.lua
 Data\BossUpdates.lua
+Data\LaunchData.lua
 
 # User interface: step tracker
 UI\Theme.lua

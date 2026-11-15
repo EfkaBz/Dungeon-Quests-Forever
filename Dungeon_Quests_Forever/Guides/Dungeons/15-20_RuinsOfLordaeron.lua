@@ -22,8 +22,8 @@ N.faranell   = { id = 2055,   name = "Master Apothecary Faranell", map = 1458, x
 N.othmar     = { id = 271613, name = "Unfinished Abomination",     map = 1458, x = 46.0, y = 62.1 }
 N.oran       = { id = 7825,   name = "Oran Snakewrithe",           map = 1458, x = 73.1, y = 32.9 }
 N.truman     = { id = 0,      name = "Captain Truman" }             -- inside, near the entrance
-N.marcus     = { id = 466,    name = "General Marcus Jonathan",    map = 1453, x = 64.0, y = 75.3 }
-N.nightingale = { id = 14450, name = "Orphan Matron Nightingale",  map = 1453, x = 47.4, y = 38.2 }
+N.marcus     = { id = 466,    name = "General Marcus Jonathan",    map = 1453, x = 69.0, y = 82.8 }
+N.nightingale = { id = 14450, name = "Orphan Matron Nightingale",  map = 1453, x = 56.2, y = 54.0 }
 N.dena       = { id = 15991,  name = "Lady Dena Kennedy",          map = 1453, x = 69.2, y = 27.7 } -- Royal Gallery, library wing of Stormwind Keep
 
 N.witherfang = { id = 0, name = L("Croc-Flétri", "Witherfang"),  enemy = true, boss = true }

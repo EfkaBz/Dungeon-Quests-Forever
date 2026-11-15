@@ -15,7 +15,7 @@ local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t
 
 -- NPCs (map = uiMapID: 1458 Undercity, 1453 Stormwind, 1413 Barrens)
 N.brownell   = { id = 2308,  name = "Andrew Brownell",      map = 1458, x = 74.1, y = 33.3 }
-N.benedictus = { id = 1284,  name = "Archbishop Benedictus", map = 1453, x = 39.6, y = 27.2 }
+N.benedictus = { id = 1284,  name = "Archbishop Benedictus", map = 1453, x = 49.6, y = 44.8 }
 N.myriam     = { id = 12866, name = "Myriam Moonsinger",    map = 1413, x = 49.0, y = 94.9 }
 N.belnistrasz = { id = 8516, name = "Belnistrasz" }         -- inside the Downs
 

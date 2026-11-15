@@ -18,7 +18,7 @@ N.talendria  = { id = 11715, name = "Talendria",           map = 1443, x = 68.5,
 N.cavindra   = { id = 13697, name = "Cavindra",            map = 1443, x = 32.1, y = 64.0 }
 N.selendra   = { id = 13699, name = "Selendra",            map = 1443, x = 26.9, y = 77.7 }
 N.marandis   = { id = 13698, name = "Keeper Marandis",     map = 1443, x = 63.8, y = 10.7 }
-N.pariah     = { id = 13717, name = "Centaur Pariah",      map = 1443, x = 50.4, y = 86.7 }
+N.pariah     = { id = 13717, name = "Centaur Pariah",      map = 1443, x = 43.4, y = 84.8 }
 N.uthelnay   = { id = 7311,  name = "Uthel'nay",           map = 1454, x = 39.2, y = 86.3 }
 N.tervosh    = { id = 4967,  name = "Archmage Tervosh",    map = 1445, x = 66.4, y = 49.3 }
 N.remulos    = { id = 11832, name = "Keeper Remulos",      map = 1450, x = 36.2, y = 41.8 }

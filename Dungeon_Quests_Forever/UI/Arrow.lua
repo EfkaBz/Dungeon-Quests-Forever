@@ -76,8 +76,9 @@ function A:Init()
         A:Tick()
     end)
     self.frame = f
+    f:SetScale(DQF_DB.arrowScale or 1)
     self:RestorePosition()
-    f:SetShown(DQF_DB.arrowShown)
+    self:Refresh()
 end
 
 function A:RestorePosition()
@@ -86,10 +87,39 @@ function A:RestorePosition()
     if p then f:SetPoint(p[1], UIParent, p[2], p[3], p[4]) else f:SetPoint("TOP", UIParent, "TOP", 0, -140) end
 end
 
+-- Size of the arrow (option slider). The saved position is in the frame's
+-- own scale: convert it so the arrow stays where it is on screen.
+function A:SetScale(scale)
+    local f = self.frame
+    local old = f:GetScale()
+    if math.abs(old - scale) < 0.001 then return end
+    local p = DQF_DB.arrowPos
+    if p then p[3], p[4] = p[3] * old / scale, p[4] * old / scale end
+    f:SetScale(scale)
+    self:RestorePosition()
+end
+
+-- Shown when the player wants it (saved choice), or for an active route.
+-- Hiding the small window with the minimap button hides it too, without
+-- changing the saved choice.
+function A:Refresh()
+    local want = DQF_DB.arrowShown or (ns.Route and ns.Route:IsActive())
+    self.frame:SetShown(want and not self.withWindowHidden)
+end
+
+-- Player's choice (menu, option, binding, /dqf arrow, right-click)
 function A:Toggle(show)
-    if show == nil then show = not self.frame:IsShown() end
+    if show == nil then show = not DQF_DB.arrowShown end
     DQF_DB.arrowShown = show
-    self.frame:SetShown(show)
+    self.withWindowHidden = nil
+    self:Refresh()
+end
+
+-- Follows the small window (minimap button): never turns the arrow on
+-- when the player switched it off
+function A:FollowWindow(windowShown)
+    self.withWindowHidden = not windowShown or nil
+    self:Refresh()
 end
 
 function A:OnUpdate(st)

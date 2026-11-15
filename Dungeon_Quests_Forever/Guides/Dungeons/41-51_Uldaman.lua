@@ -19,7 +19,7 @@ local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t
 N.stormpike  = { id = 1356, name = "Prospector Stormpike",   map = 1455, x = 74.6, y = 11.7 }
 N.ironband   = { id = 1344, name = "Prospector Ironband",    map = 1432, x = 65.9, y = 65.6 }
 N.ryedol     = { id = 2910, name = "Prospector Ryedol",      map = 1418, x = 53.4, y = 43.4 }
-N.hammertoe  = { id = 2909, name = "Hammertoe Grez",         map = 1432, x = 37.3, y = 85.8 }
+N.hammertoe  = { id = 2909, name = "Hammertoe Grez",         map = 1418, x = 44.3, y = 12.0 } -- outer Uldaman excavation caves
 N.karnik     = { id = 2916, name = "Historian Karnik",       map = 1455, x = 77.5, y = 11.8 }
 N.belgrum    = { id = 2918, name = "Advisor Belgrum",        map = 1455, x = 77.3, y = 9.7 }
 N.krom       = { id = 6294, name = "Krom Stoutarm",          map = 1455, x = 74.2, y = 9.4 }

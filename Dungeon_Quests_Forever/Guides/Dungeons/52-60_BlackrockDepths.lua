@@ -42,11 +42,11 @@ N.n7040 = { id = 7040, name = "Black Dragonspawn", map = 1428, x = 85.4, y = 27.
 N.n7044 = { id = 7044, name = "Black Drake", map = 1428, x = 89.9, y = 43.9 }
 N.n7041 = { id = 7041, name = "Black Wyrmkin", map = 1428, x = 88.4, y = 40.0 }
 N.n344 = { id = 344, name = "Magistrate Solomon", map = 1433, x = 30.0, y = 44.5 }
-N.n1748 = { id = 1748, name = "Highlord Bolvar Fordragon", map = 1453, x = 78.2, y = 18.0 }
+N.n1748 = { id = 1748, name = "Highlord Bolvar Fordragon", map = 1453, x = 79.6, y = 39.5 }
 N.n9560 = { id = 9560, name = "Marshal Maxwell", map = 1428, x = 84.7, y = 69.0 }
 N.n9561 = { id = 9561, name = "Jalinda Sprig", map = 1428, x = 85.4, y = 70.1 }
 N.n16013 = { id = 16013, name = "Deliana", map = 1455, x = 43.5, y = 52.6 }
-N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 30.9, y = 16.8 }
+N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 26.1, y = 11.3 }
 N.n16012 = { id = 16012, name = "Mokvar", map = 1454, x = 35.0, y = 38.3 }
 N.n16031 = { id = 16031, name = "Ysida Harmon" }
 N.n16032 = { id = 16032, name = "Falrin Treeshaper" }

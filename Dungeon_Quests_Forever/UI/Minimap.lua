@@ -40,13 +40,13 @@ function M:Init()
         if IsControlKeyDown() then ns.Options:Toggle()
         elseif btn == "RightButton" then ns.Journal:Toggle()
         else
-            -- the small window and the guide arrow are shown/hidden together
+            -- the guide arrow is hidden with the small window, and comes back
+            -- with it only if the player did not switch it off
             -- (the window holds secure buttons: not possible in combat)
             if InCombatLockdown() then ns.UI:Toggle() return end
             local show = not ns.UI.frame:IsShown()
             ns.UI:Toggle(show)
-            ns.Arrow:Toggle(show)
-            if ns.Options.Refresh then ns.Options.Refresh() end
+            ns.Arrow:FollowWindow(show)
         end
     end)
     b:SetScript("OnDragStart", function(s)

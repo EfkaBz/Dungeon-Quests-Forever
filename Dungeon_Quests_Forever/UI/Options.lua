@@ -4,14 +4,14 @@ local O = {}
 ns.Options = O
 ns:RegisterModule(O)
 
-local W, H = 580, 560
+local W, H = 580, 604
 local COL_W = (W - 16 * 3) / 2   -- two columns
 local LINE = 24
 
 local function Apply()
     ns.UI:ApplySettings()
     ns.Minimap:ApplySettings()
-    ns.Arrow.frame:SetShown(DQF_DB.arrowShown)
+    ns.Arrow:Refresh()
     ns.ApplyTheme()
     O:ApplyAccent()
     ns.EntrancePins:Refresh()
@@ -92,7 +92,7 @@ local function DBCheck(card, label, key, tip, x, w)
 end
 
 -- Thin slider: label on the left, value on the right
-local function Slider(card, label, key, min, max, step)
+local function Slider(card, label, key, min, max, step, apply)
     local t = card:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     t:SetPoint("TOPLEFT", 14, card.nextY)
     t:SetText(label)
@@ -118,7 +118,7 @@ local function Slider(card, label, key, min, max, step)
     s:SetScript("OnValueChanged", function(_, val)
         DQF_DB[key] = val
         Show(val)
-        ns.UI:ApplySettings()
+        if apply then apply(val) else ns.UI:ApplySettings() end
     end)
     s:SetValue(DQF_DB[key]); Show(DQF_DB[key])
     O.sliders[#O.sliders + 1] = s
@@ -239,9 +239,12 @@ function O:Build()
     DBCheck(map, L("Points sur la minimap", "Minimap pins"), "minimapPins")
 
     -- Right column
-    local look = Section(f, L("Apparence", "Appearance"), x2, y0, 34 + 44 * 2 + 30 * 2 + 4)
+    local LOOK_H = 34 + 44 * 3 + 30 * 2 + 4
+    local look = Section(f, L("Apparence", "Appearance"), x2, y0, LOOK_H)
     Slider(look, L("Taille", "Scale"), "scale", 0.6, 1.6, 0.05)
     Slider(look, L("Opacité", "Opacity"), "alpha", 0.3, 1, 0.05)
+    Slider(look, L("Taille de la flèche", "Arrow size"), "arrowScale", 0.5, 3, 0.05,
+        function(v) ns.Arrow:SetScale(v) end)
     local themes = {}
     for _, k in ipairs(ns.THEME_ORDER) do
         themes[#themes + 1] = { k, function() return ns.ThemeName(ns.THEMES[k]) end }
@@ -269,7 +272,7 @@ function O:Build()
             .. "Korean and Chinese only display on a client in those languages."))
 
     -- Journal and world map (right column, under Appearance)
-    local jour = Section(f, L("Dungeon Home et carte", "Dungeon Home and map"), x2, y0 - (34 + 44 * 2 + 30 * 2 + 4) - 10, 34 + LINE * 4 + 8)
+    local jour = Section(f, L("Dungeon Home et carte", "Dungeon Home and map"), x2, y0 - LOOK_H - 10, 34 + LINE * 4 + 8)
     DBCheck(jour, L("Toujours afficher les entrées", "Always show entrances"), "entrancePins",
         L("Affiche toutes les entrées de donjon sur la carte du monde.", "Shows every dungeon entrance on the world map."))
     DBCheck(jour, L("Boss sur la carte du donjon (M)", "Bosses on the dungeon map (M)"), "dungeonWorldMap",
@@ -283,7 +286,7 @@ function O:Build()
           "Tells you in the chat when a group or guild member has a newer version."))
 
     -- Automation: full width, 2 columns x 2 rows
-    local auto = Section(f, L("Automatisation", "Automation"), x1, -408 + DY, 34 + LINE * 2 + 8)
+    local auto = Section(f, L("Automatisation", "Automation"), x1, -452 + DY, 34 + LINE * 2 + 8)
     auto:SetWidth(W - 32)
     local cw = (W - 32 - 28) / 2
     local entries = {

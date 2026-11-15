@@ -23,7 +23,7 @@ N.n11732 = { id = 11732, name = "Hive'Regal Spitfire", map = 1451, x = 51.6, y =
 N.n11733 = { id = 11733, name = "Hive'Regal Slavemaker", map = 1451, x = 50.9, y = 94.0 }
 N.n7428 = { id = 7428, name = "Frostmaul Giant", map = 1452, x = 65.7, y = 69.3 }
 N.n7429 = { id = 7429, name = "Frostmaul Preserver", map = 1452, x = 64.2, y = 72.2 }
-N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 88.5, y = 84.5 }
+N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 80.3, y = 73.3 }
 N.n7071 = { id = 7071, name = "Cursed Paladin", map = 1424, x = 19.1, y = 80.6 }
 N.n7072 = { id = 7072, name = "Cursed Justicar", map = 1424, x = 15.3, y = 81.8 }
 N.n7075 = { id = 7075, name = "Writhing Mage", map = 1424, x = 15.5, y = 77.4 }
@@ -37,7 +37,7 @@ N.n4366 = { id = 4366, name = "Strashaz Serpent Guard", map = 1445, x = 75.6, y 
 N.n4370 = { id = 4370, name = "Strashaz Sorceress", map = 1445, x = 76.5, y = 22.2 }
 N.n4371 = { id = 4371, name = "Strashaz Siren", map = 1445, x = 74.3, y = 18.4 }
 N.n14355 = { id = 14355, name = "Azj'Tordin", map = 1444, x = 76.9, y = 37.4 }
-N.n2198 = { id = 2198, name = "Crier Goodman", map = 1453, x = 47.5, y = 64.2 }
+N.n2198 = { id = 2198, name = "Crier Goodman", map = 1453, x = 56.4, y = 74.1 }
 N.n10880 = { id = 10880, name = "Warcaller Gorlach", map = 1454, x = 37.6, y = 75.4 }
 N.n14354 = { id = 14354, name = "Pusillin" }
 N.n7877 = { id = 7877, name = "Latronicus Moonspear", map = 1444, x = 30.4, y = 46.2 }

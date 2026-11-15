@@ -630,13 +630,21 @@ end
 ----------------------------------------------------------------------
 -- items: { {text, func, checked = fn?, check = bool?, isTitle = bool?, children = items?}, ... }
 -- An item with `children` opens a submenu on mouse-over.
+-- The action of a menu item runs on the next frame, out of the game's menu
+-- code: with the gamepad cursor, running it inside the menu click (window
+-- rebuilt, secure buttons moved) broke the game's menu / cursor handling.
+local function Deferred(fn)
+    if not fn then return end
+    return function() C_Timer.After(0, fn) end
+end
+
 local function FillMenu(root, items)
     for _, it in ipairs(items) do
         if it.isTitle then root:CreateTitle(it[1])
         elseif it.children then FillMenu(root:CreateButton(it[1]), it.children)
-        elseif it.check then root:CreateCheckbox(it[1], it.checked, it[2])
-        elseif it.checked then root:CreateRadio(it[1], it.checked, it[2])
-        else root:CreateButton(it[1], it[2]) end
+        elseif it.check then root:CreateCheckbox(it[1], it.checked, Deferred(it[2]))
+        elseif it.checked then root:CreateRadio(it[1], it.checked, Deferred(it[2]))
+        else root:CreateButton(it[1], Deferred(it[2])) end
     end
 end
 
@@ -649,7 +657,7 @@ function ns.ShowMenu(anchor, items)
     UIDropDownMenu_Initialize(UI.dropdown, function(_, level, menuList)
         for _, it in ipairs(menuList or items) do
             local info = UIDropDownMenu_CreateInfo()
-            info.text, info.func, info.isTitle = it[1], it[2], it.isTitle
+            info.text, info.func, info.isTitle = it[1], Deferred(it[2]), it.isTitle
             info.notCheckable = not it.checked
             if it.checked then info.checked = it.checked(); info.isNotRadio = it.check end
             if it.children then

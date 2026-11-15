@@ -11,7 +11,7 @@ local A, T, K, D = ns.Accept, ns.TurnIn, ns.Talk, ns.Do
 -- Coordinates from the Questie classic DB; refreshed from Questie when installed.
 N.thrall      = { id = 4949,  name = "Thrall",          map = 1454, x = 31.7, y = 37.8 }
 N.neeru       = { id = 3216,  name = "Neeru Fireblade", map = 1454, x = 49.5, y = 50.6 }
-N.rahauro     = { id = 11833, name = "Rahauro",         map = 1456, x = 70.1, y = 29.5 }
+N.rahauro     = { id = 11833, name = "Rahauro",         map = 1456, x = 70.4, y = 32.2 }
 N.varimathras = { id = 2425,  name = "Varimathras",     map = 1458, x = 56.3, y = 92.2 }
 
 -- Ragefire Chasm

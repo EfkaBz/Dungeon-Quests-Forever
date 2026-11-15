@@ -21,7 +21,7 @@ N.n9562 = { id = 9562, name = "Helendis Riverhorn", map = 1428, x = 85.8, y = 69
 N.n9081 = { id = 9081, name = "Galamav the Marksman", map = 1418, x = 6.0, y = 47.7 }
 N.n10260 = { id = 10260, name = "Kibler", map = 1428, x = 65.9, y = 21.9 }
 N.n10296 = { id = 10296, name = "Vaelan" }
-N.n2285 = { id = 2285, name = "Count Remington Ridgewell", map = 1453, x = 74.0, y = 30.2 }
+N.n2285 = { id = 2285, name = "Count Remington Ridgewell", map = 1453, x = 76.9, y = 47.8 }
 N.n5204 = { id = 5204, name = "Apothecary Zinge", map = 1458, x = 50.1, y = 68.0 }
 N.n9563 = { id = 9563, name = "Ragged John", map = 1428, x = 65.0, y = 23.8 }
 N.n10799 = { id = 10799, name = "Warosh" }

@@ -15,18 +15,18 @@ local function HO(extra) local t = extra or {}; t.faction = "Horde"; return t en
 -- Alliance NPCs
 N.att_helendis  = { id = 9562,  name = "Helendis Riverhorn",        map = 1428, x = 85.8, y = 69.0 }
 N.att_solomon   = { id = 344,   name = "Magistrate Solomon",        map = 1433, x = 30.0, y = 44.5 }
-N.att_bolvar    = { id = 1748,  name = "Highlord Bolvar Fordragon", map = 1453, x = 78.2, y = 18.0 }
-N.att_prestor   = { id = 1749,  name = "Lady Katrana Prestor",      map = 1453, x = 78.1, y = 17.8 }
+N.att_bolvar    = { id = 1748,  name = "Highlord Bolvar Fordragon", map = 1453, x = 79.6, y = 39.5 }
+N.att_prestor   = { id = 1749,  name = "Lady Katrana Prestor",      map = 1453, x = 79.5, y = 39.4 }
 N.att_maxwell   = { id = 9560,  name = "Marshal Maxwell",           map = 1428, x = 84.7, y = 69.0 }
 N.att_ragged    = { id = 9563,  name = "Ragged John",               map = 1428, x = 65.0, y = 23.8 }
 N.att_windsor   = { id = 9023,  name = "Marshal Windsor" }          -- prison of Blackrock Depths
-N.att_rowe      = { id = 17804, name = "Squire Rowe",               map = 1453, x = 70.4, y = 85.2 }
+N.att_rowe      = { id = 17804, name = "Squire Rowe",               map = 1453, x = 73.5, y = 89.4 }
 N.att_haleh     = { id = 10929, name = "Haleh",                     map = 1452, x = 54.6, y = 51.2 } -- top of Mazthoril
 -- Horde NPCs
 N.att_goretooth = { id = 9077,  name = "Warlord Goretooth",         map = 1418, x = 5.8,  y = 47.5 }
 N.att_eitrigg   = { id = 3144,  name = "Eitrigg",                   map = 1454, x = 34.3, y = 39.4 }
 N.att_thrall    = { id = 4949,  name = "Thrall",                    map = 1454, x = 31.7, y = 37.8 }
-N.att_rexxar    = { id = 10182, name = "Rexxar",                    map = 1444, x = 46.4, y = 18.2 } -- walks between Desolace and Feralas
+N.att_rexxar    = { id = 10182, name = "Rexxar",                    map = 1444, x = 44.8, y = 7.4 } -- walks between Desolace and Feralas
 N.att_myranda   = { id = 11872, name = "Myranda the Hag",           map = 1422, x = 50.8, y = 77.9 }
 N.att_emberstrife = N.att_emberstrife or { id = 10321, name = "Emberstrife", map = 1445, x = 56.7, y = 87.7 }
 -- Mobs

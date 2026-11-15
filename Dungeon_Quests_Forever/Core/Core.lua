@@ -1,5 +1,5 @@
 local ADDON, ns = ...
-ns.VERSION = "0.3.27"
+ns.VERSION = "0.3.28"
 ns.dungeons, ns.dungeonOrder, ns.NPCS = {}, {}, {}
 -- Language functions (ns.L, ns.Lang, ns.IsFR...) live in Core\Locale.lua.
 -- Saved variables are only available after ADDON_LOADED, so every text
@@ -9,7 +9,7 @@ local L = ns.L
 local DEFAULTS = {
     lang = "auto",
     autoQuest = true, autoRewards = false, autoFlight = false, skipGossip = true,
-    shown = true, arrowShown = true, minimapShown = true, minimapAngle = 200,
+    shown = true, arrowShown = true, arrowScale = 1, minimapShown = true, minimapAngle = 200,
     targetsShown = true, mapPins = true, minimapPins = true,
     hideDone = false, autoFollow = true, locked = false,
     scale = 1, alpha = 1, theme = "blizzard", -- new installs start with the game look

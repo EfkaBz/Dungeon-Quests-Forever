@@ -17,7 +17,7 @@ N.n7040 = { id = 7040, name = "Black Dragonspawn", map = 1428, x = 85.4, y = 27.
 N.n7044 = { id = 7044, name = "Black Drake", map = 1428, x = 89.9, y = 43.9 }
 N.n7041 = { id = 7041, name = "Black Wyrmkin", map = 1428, x = 88.4, y = 40.0 }
 N.n344 = { id = 344, name = "Magistrate Solomon", map = 1433, x = 30.0, y = 44.5 }
-N.n1748 = { id = 1748, name = "Highlord Bolvar Fordragon", map = 1453, x = 78.2, y = 18.0 }
+N.n1748 = { id = 1748, name = "Highlord Bolvar Fordragon", map = 1453, x = 79.6, y = 39.5 }
 N.n9560 = { id = 9560, name = "Marshal Maxwell", map = 1428, x = 84.7, y = 69.0 }
 N.n9023 = { id = 9023, name = "Marshal Windsor" }
 N.n8889 = { id = 8889, name = "Anvilrage Overseer" }
@@ -34,7 +34,7 @@ N.n9077 = { id = 9077, name = "Warlord Goretooth", map = 1418, x = 5.8, y = 47.5
 N.n4949 = { id = 4949, name = "Thrall", map = 1454, x = 31.7, y = 37.8 }
 N.n12580 = { id = 12580, name = "Reginald Windsor", map = 1429, x = 32.2, y = 49.6 } -- appears at the Stormwind gates (Elwynn)
 N.n10929 = { id = 10929, name = "Haleh", map = 1452, x = 54.5, y = 51.2 }
-N.n10182 = { id = 10182, name = "Rexxar", map = 1444, x = 46.4, y = 18.2 }
+N.n10182 = { id = 10182, name = "Rexxar", map = 1444, x = 44.8, y = 7.4 }
 N.n11872 = { id = 11872, name = "Myranda the Hag", map = 1422, x = 50.8, y = 77.8 }
 N.n10321 = { id = 10321, name = "Emberstrife", map = 1445, x = 56.7, y = 87.7 }
 N.n10664 = { id = 10664, name = "Scryer", map = 1452, x = 52.7, y = 55.9 }
@@ -53,7 +53,7 @@ N.n11732 = { id = 11732, name = "Hive'Regal Spitfire", map = 1451, x = 51.6, y =
 N.n11733 = { id = 11733, name = "Hive'Regal Slavemaker", map = 1451, x = 50.9, y = 94.0 }
 N.n7428 = { id = 7428, name = "Frostmaul Giant", map = 1452, x = 65.7, y = 69.3 }
 N.n7429 = { id = 7429, name = "Frostmaul Preserver", map = 1452, x = 64.2, y = 72.2 }
-N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 88.5, y = 84.5 }
+N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 80.3, y = 73.3 }
 N.n7071 = { id = 7071, name = "Cursed Paladin", map = 1424, x = 19.1, y = 80.6 }
 N.n7072 = { id = 7072, name = "Cursed Justicar", map = 1424, x = 15.3, y = 81.8 }
 N.n7075 = { id = 7075, name = "Writhing Mage", map = 1424, x = 15.5, y = 77.4 }

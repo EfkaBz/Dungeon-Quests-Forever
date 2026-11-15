@@ -12,7 +12,7 @@ local A, T, K, D = ns.Accept, ns.TurnIn, ns.Talk, ns.Do
 
 N.n1443 = { id = 1443, name = "Fel'zerul", map = 1435, x = 47.9, y = 54.8 }
 N.n5598 = { id = 5598, name = "Atal'ai Exile", map = 1425, x = 33.8, y = 75.2 }
-N.n5384 = { id = 5384, name = "Brohann Caskbelly", map = 1453, x = 64.3, y = 20.6 }
+N.n5384 = { id = 5384, name = "Brohann Caskbelly", map = 1453, x = 66.8, y = 43.4 }
 N.n5635 = { id = 5635, name = "Falstad Wildhammer", map = 1425, x = 11.8, y = 46.8 }
 N.n5636 = { id = 5636, name = "Gryphon Master Talonaxe", map = 1425, x = 9.8, y = 44.5 }
 N.n5634 = { id = 5634, name = "Rhapsody Shindigger", map = 1425, x = 26.9, y = 48.6 }

@@ -12,7 +12,7 @@ local A, T, K, D = ns.Accept, ns.TurnIn, ns.Talk, ns.Do
 -- ===================================================================
 
 N.n16013 = { id = 16013, name = "Deliana", map = 1455, x = 43.5, y = 52.6 }
-N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 30.9, y = 16.8 }
+N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 26.1, y = 11.3 }
 N.n16012 = { id = 16012, name = "Mokvar", map = 1454, x = 35.0, y = 38.3 }
 N.n16031 = { id = 16031, name = "Ysida Harmon" }
 N.n14358 = { id = 14358, name = "Shen'dralar Ancient" }

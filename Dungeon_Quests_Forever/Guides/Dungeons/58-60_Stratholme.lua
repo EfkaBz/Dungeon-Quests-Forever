@@ -10,30 +10,30 @@ local A, T, K, D = ns.Accept, ns.TurnIn, ns.Talk, ns.Do
 -- Forever changes will be added as they are known. Verify in game.
 -- ===================================================================
 
-N.n11038 = { id = 11038, name = "Caretaker Alen", map = 1423, x = 79.5, y = 63.9 }
-N.n11140 = { id = 11140, name = "Egan", map = 1423, x = 14.4, y = 33.7 }
+N.n11038 = { id = 11038, name = "Caretaker Alen", map = 1423, x = 71.8, y = 54.4 }
+N.n11140 = { id = 11140, name = "Egan", map = 1423, x = 10.9, y = 27.2 }
 N.n11216 = { id = 11216, name = "Eva Sarkhoff", map = 1422, x = 70.2, y = 73.7 }
 N.n11261 = { id = 11261, name = "Doctor Theolen Krastinov" }
 N.n10503 = { id = 10503, name = "Jandice Barov" }
 N.n10506 = { id = 10506, name = "Kirtonos the Herald" }
 N.n11286 = { id = 11286, name = "Magistrate Marduke", map = 1422, x = 70.6, y = 74.1 }
-N.n11036 = { id = 11036, name = "Leonid Barthalomew the Revered", map = 1423, x = 81.7, y = 57.8 }
-N.n1855 = { id = 1855, name = "Tirion Fordring", map = 1423, x = 7.6, y = 43.7 }
-N.n8596 = { id = 8596, name = "Plaguehound Runt", map = 1423, x = 45.1, y = 86.6 }
-N.n8597 = { id = 8597, name = "Plaguehound", map = 1423, x = 65.9, y = 58.8 }
-N.n8598 = { id = 8598, name = "Frenzied Plaguehound", map = 1423, x = 65.3, y = 33.0 }
-N.n8600 = { id = 8600, name = "Plaguebat", map = 1423, x = 15.0, y = 75.5 }
-N.n8603 = { id = 8603, name = "Carrion Grub", map = 1423, x = 66.8, y = 61.4 }
-N.n8605 = { id = 8605, name = "Carrion Devourer", map = 1423, x = 65.4, y = 27.8 }
+N.n11036 = { id = 11036, name = "Leonid Barthalomew the Revered", map = 1423, x = 73.9, y = 49.0 }
+N.n1855 = { id = 1855, name = "Tirion Fordring", map = 1423, x = 4.3, y = 36.1 }
+N.n8596 = { id = 8596, name = "Plaguehound Runt", map = 1423, x = 39.6, y = 75.2 }
+N.n8597 = { id = 8597, name = "Plaguehound", map = 1423, x = 59.1, y = 49.8 }
+N.n8598 = { id = 8598, name = "Frenzied Plaguehound", map = 1423, x = 58.5, y = 26.3 }
+N.n8600 = { id = 8600, name = "Plaguebat", map = 1423, x = 11.3, y = 65.1 }
+N.n8603 = { id = 8603, name = "Carrion Grub", map = 1423, x = 59.9, y = 52.2 }
+N.n8605 = { id = 8605, name = "Carrion Devourer", map = 1423, x = 58.6, y = 21.5 }
 N.n11886 = { id = 11886, name = "Mercutio Filthgorger" }
 N.n11936 = { id = 11936, name = "Artist Renfray", map = 1422, x = 65.8, y = 75.4 }
-N.n11878 = { id = 11878, name = "Nathanos Blightcaller", map = 1423, x = 26.5, y = 74.7 }
-N.n8565 = { id = 8565, name = "Pathstrider", map = 1423, x = 53.7, y = 18.8 }
-N.n8564 = { id = 8564, name = "Ranger", map = 1423, x = 51.5, y = 18.1 }
-N.n8563 = { id = 8563, name = "Woodsman", map = 1423, x = 54.0, y = 18.8 }
-N.n11897 = { id = 11897, name = "Duskwing", map = 1423, x = 30.8, y = 69.8 }
+N.n11878 = { id = 11878, name = "Nathanos Blightcaller", map = 1423, x = 22.2, y = 64.3 }
+N.n8565 = { id = 8565, name = "Pathstrider", map = 1423, x = 47.6, y = 13.3 }
+N.n8564 = { id = 8564, name = "Ranger", map = 1423, x = 45.6, y = 12.7 }
+N.n8563 = { id = 8563, name = "Woodsman", map = 1423, x = 47.9, y = 13.3 }
+N.n11897 = { id = 11897, name = "Duskwing", map = 1423, x = 26.1, y = 59.9 }
 N.n16013 = { id = 16013, name = "Deliana", map = 1455, x = 43.5, y = 52.6 }
-N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 30.9, y = 16.8 }
+N.n16016 = { id = 16016, name = "Anthion Harmon", map = 1423, x = 26.1, y = 11.3 }
 N.n16012 = { id = 16012, name = "Mokvar", map = 1454, x = 35.0, y = 38.3 }
 N.n16033 = { id = 16033, name = "Bodley" }
 N.n9017 = { id = 9017, name = "Lord Incendius" }
@@ -45,7 +45,7 @@ N.n11732 = { id = 11732, name = "Hive'Regal Spitfire", map = 1451, x = 51.6, y =
 N.n11733 = { id = 11733, name = "Hive'Regal Slavemaker", map = 1451, x = 50.9, y = 94.0 }
 N.n7428 = { id = 7428, name = "Frostmaul Giant", map = 1452, x = 65.7, y = 69.3 }
 N.n7429 = { id = 7429, name = "Frostmaul Preserver", map = 1452, x = 64.2, y = 72.2 }
-N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 88.5, y = 84.5 }
+N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 80.3, y = 73.3 }
 N.n7071 = { id = 7071, name = "Cursed Paladin", map = 1424, x = 19.1, y = 80.6 }
 N.n7072 = { id = 7072, name = "Cursed Justicar", map = 1424, x = 15.3, y = 81.8 }
 N.n7075 = { id = 7075, name = "Writhing Mage", map = 1424, x = 15.5, y = 77.4 }
@@ -58,9 +58,9 @@ N.n4364 = { id = 4364, name = "Strashaz Warrior", map = 1445, x = 74.8, y = 15.1
 N.n4366 = { id = 4366, name = "Strashaz Serpent Guard", map = 1445, x = 75.6, y = 22.0 }
 N.n4370 = { id = 4370, name = "Strashaz Sorceress", map = 1445, x = 76.5, y = 22.2 }
 N.n4371 = { id = 4371, name = "Strashaz Siren", map = 1445, x = 74.3, y = 18.4 }
-N.n11035 = { id = 11035, name = "Betina Bigglezink", map = 1423, x = 81.5, y = 59.7 }
-N.n11033 = { id = 11033, name = "Smokey LaRue", map = 1423, x = 80.6, y = 58.0 }
-N.n11039 = { id = 11039, name = "Duke Nicholas Zverenhoff", map = 1423, x = 81.4, y = 59.8 }
+N.n11035 = { id = 11035, name = "Betina Bigglezink", map = 1423, x = 73.7, y = 50.5 }
+N.n11033 = { id = 11033, name = "Smokey LaRue", map = 1423, x = 72.8, y = 49.2 }
+N.n11039 = { id = 11039, name = "Duke Nicholas Zverenhoff", map = 1423, x = 73.7, y = 50.8 }
 N.n10381 = { id = 10381, name = "Ravaged Cadaver" }
 N.n10382 = { id = 10382, name = "Mangled Cadaver" }
 N.n10405 = { id = 10405, name = "Plague Ghoul" }
@@ -78,7 +78,7 @@ ns:RegisterDungeon("STRAT", function() return {
     name = L("Stratholme", "Stratholme"),
     levels = "58-60",
     icon = "Interface\\Icons\\Spell_Holy_SenseUndead",
-    entrance = { map = 1423, x = 31.3, y = 15.7 },
+    entrance = { map = 1423, x = 26.6, y = 10.5 },
     titles = {
         [5125] = L("L'estimation d'Aurius", "Aurius' Reckoning"),
         [5212] = L("La chair ne ment pas", "The Flesh Does Not Lie"),

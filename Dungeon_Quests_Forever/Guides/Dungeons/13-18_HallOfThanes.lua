@@ -15,7 +15,7 @@ local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t
 N.farsen   = { id = 264936, name = "Earthseer Farsen",       map = 1426, x = 64.8, y = 58.5 }
 N.magni    = { id = 2784,   name = "King Magni Bronzebeard", map = 1455, x = 39.1, y = 55.8 }
 N.afadra   = { id = 0,      name = "Afadra Dunwall",         map = 1455, x = 32.8, y = 48.0 }
-N.thom     = { id = 0,      name = "Thom Filch",             map = 1455, x = 32.6, y = 44.6 }
+N.thom     = { id = 0,      name = "Thom Filch",             map = 1455, x = 43.5, y = 52.0 }
 N.attendant = { id = 0,     name = "Ghostly Attendant" }     -- first room of the dungeon
 
 N.darkspy  = { id = 0, name = "Dark Iron Spy",                              enemy = true }

@@ -15,7 +15,7 @@ local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t
 N.berton     = { id = 859,  name = "Guard Berton",         map = 1433, x = 21.2, y = 46.6, forever = true } -- Forever position (DungeonJournal 1.6.3)
 N.millstipe  = { id = 270,  name = "Councilman Millstipe", map = 1431, x = 71.9, y = 47.8 }
 N.motley     = { id = 1074, name = "Motley Garmason",      map = 1437, x = 49.7, y = 18.2 }
-N.nikova     = { id = 1721, name = "Nikova Raskol",        map = 1453, x = 73.6, y = 46.6, forever = true } -- Forever Stormwind
+N.nikova     = { id = 1721, name = "Nikova Raskol",        map = 1453, x = 74.4, y = 60.0, forever = true } -- Forever Stormwind
 
 N.targorr    = { id = 1696, name = "Targorr the Dread",   enemy = true, boss = true }
 N.deepfury   = { id = 1666, name = "Kam Deepfury",        enemy = true, boss = true }
@@ -36,7 +36,7 @@ ns:RegisterDungeon("STOCKS", function() return {
     levels = "24-32",
     faction = "Alliance", -- inside Stormwind: Horde cannot reach it
     icon = "Interface\\Icons\\INV_Misc_Key_03",
-    entrance = { map = 1453, x = 42.3, y = 58.9 }, -- Mage Quarter canal
+    entrance = { map = 1453, x = 52.4, y = 70.0 }, -- the Stockade (Forever Stormwind map)
     titles = {
         [303] = L("La guerre contre les Sombrefer", "The Dark Iron War"),
         [373] = L("La lettre non envoyée", "The Unsent Letter"),

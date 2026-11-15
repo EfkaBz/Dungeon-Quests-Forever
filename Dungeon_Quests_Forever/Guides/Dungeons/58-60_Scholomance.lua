@@ -15,7 +15,7 @@ N.n10468 = { id = 10468, name = "Felnok Steelspring", map = 1452, x = 61.6, y = 
 N.n7447 = { id = 7447, name = "Fledgling Chillwind", map = 1452, x = 29.6, y = 48.5 }
 N.n7448 = { id = 7448, name = "Chillwind Chimaera", map = 1452, x = 68.5, y = 52.8 }
 N.n7449 = { id = 7449, name = "Chillwind Ravager", map = 1452, x = 60.4, y = 21.8 }
-N.n11036 = { id = 11036, name = "Leonid Barthalomew the Revered", map = 1423, x = 81.7, y = 57.8 }
+N.n11036 = { id = 11036, name = "Leonid Barthalomew the Revered", map = 1423, x = 73.9, y = 49.0 }
 N.n11286 = { id = 11286, name = "Magistrate Marduke", map = 1422, x = 70.6, y = 74.1 }
 N.n16013 = { id = 16013, name = "Deliana", map = 1455, x = 43.5, y = 52.6 }
 N.n16033 = { id = 16033, name = "Bodley" }
@@ -29,7 +29,7 @@ N.n11732 = { id = 11732, name = "Hive'Regal Spitfire", map = 1451, x = 51.6, y =
 N.n11733 = { id = 11733, name = "Hive'Regal Slavemaker", map = 1451, x = 50.9, y = 94.0 }
 N.n7428 = { id = 7428, name = "Frostmaul Giant", map = 1452, x = 65.7, y = 69.3 }
 N.n7429 = { id = 7429, name = "Frostmaul Preserver", map = 1452, x = 64.2, y = 72.2 }
-N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 88.5, y = 84.5 }
+N.n9448 = { id = 9448, name = "Scarlet Praetorian", map = 1423, x = 80.3, y = 73.3 }
 N.n7071 = { id = 7071, name = "Cursed Paladin", map = 1424, x = 19.1, y = 80.6 }
 N.n7072 = { id = 7072, name = "Cursed Justicar", map = 1424, x = 15.3, y = 81.8 }
 N.n7075 = { id = 7075, name = "Writhing Mage", map = 1424, x = 15.5, y = 77.4 }
@@ -44,7 +44,7 @@ N.n4371 = { id = 4371, name = "Strashaz Siren", map = 1445, x = 74.3, y = 18.4 }
 N.n11022 = { id = 11022, name = "Alexi Barov", map = 1420, x = 83.1, y = 71.6 }
 N.n11023 = { id = 11023, name = "Weldon Barov", map = 1422, x = 43.5, y = 83.7 }
 N.n11216 = { id = 11216, name = "Eva Sarkhoff", map = 1422, x = 70.2, y = 73.7 }
-N.n11035 = { id = 11035, name = "Betina Bigglezink", map = 1423, x = 81.5, y = 59.7 }
+N.n11035 = { id = 11035, name = "Betina Bigglezink", map = 1423, x = 73.7, y = 50.5 }
 N.n11261 = { id = 11261, name = "Doctor Theolen Krastinov" }
 N.n10508 = { id = 10508, name = "Ras Frostwhisper" }
 N.n10678 = { id = 10678, name = "Plagued Hatchling" }

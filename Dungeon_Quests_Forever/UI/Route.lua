@@ -89,12 +89,14 @@ function R:Start(d)
     for i, p in ipairs(pts) do
         DEFAULT_CHAT_FRAME:AddMessage(("   %d. %s  |cffaaaaaa(%s)|r"):format(i, p.text, ns.ZoneName(p.map)))
     end
-    if not DQF_DB.arrowShown then ns.Arrow:Toggle(true) end
+    -- the arrow is shown for the route only (the saved choice is kept)
+    ns.Arrow:Refresh()
     self:Draw()
 end
 
 function R:Stop()
     self.active = nil
+    ns.Arrow:Refresh()
     self:Draw()
     if ns.Journal.frame and ns.Journal.frame:IsShown() and ns.Journal.view == "dungeon" then ns.Journal:RefreshHeader() end
 end

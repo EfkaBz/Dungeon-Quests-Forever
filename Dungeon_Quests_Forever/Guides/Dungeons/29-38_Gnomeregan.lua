@@ -18,7 +18,7 @@ N.nogg       = { id = 3412, name = "Nogg",                        map = 1454, x 
 N.sovik      = { id = 3413, name = "Sovik",                       map = 1454, x = 75.5, y = 25.4 }
 N.scooty     = { id = 7853, name = "Scooty",                      map = 1434, x = 27.6, y = 77.5 }
 N.overspark  = { id = 7944, name = "Tinkmaster Overspark",        map = 1455, x = 69.6, y = 50.3 }
-N.sarno      = { id = 7917, name = "Brother Sarno",               map = 1453, x = 40.6, y = 31.0 }
+N.sarno      = { id = 7917, name = "Brother Sarno",               map = 1453, x = 50.3, y = 49.2 }
 N.klockmort  = { id = 6169, name = "Klockmort Spannerspan",       map = 1455, x = 67.9, y = 46.1 }
 N.mathiel    = { id = 6142, name = "Mathiel",                     map = 1457, x = 59.5, y = 45.4 }
 N.ozzie      = { id = 1268, name = "Ozzie Togglevolt",            map = 1426, x = 45.9, y = 49.4 }

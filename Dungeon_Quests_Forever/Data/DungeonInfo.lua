@@ -11,6 +11,7 @@ local _, ns = ...
 --             without it, an automatic route is built (flight master -> entrance)
 local LS = "Interface\\Glues\\LoadingScreens\\"
 local WIDE = { 0.02, 0.98, 0.24, 0.82 }
+local HOMES = "Interface\\AddOns\\Dungeon_Quests_Forever\\Media\\Homes\\"
 
 ns.DUNGEON_INFO = {
     RFC     = { art = LS .. "LoadScreenRagefireChasm" },
@@ -26,7 +27,13 @@ ns.DUNGEON_INFO = {
     ROL     = { art = 7963782, artCoord = { 0, 1, 0.12, 0.88 } },
     EXCAV   = { art = 7963777, artCoord = { 0, 1, 0.12, 0.88 } },
     DALARAN = { art = 7963775, artCoord = { 0, 1, 0.12, 0.88 } },
-    SUNKEN  = { art = 7963776, artCoord = { 0, 1, 0.12, 0.88 } },
+    -- Dungeons opened at launch: their loading screens, bundled in Media\Homes
+    -- (cropped to 2:1, the client has no path for them)
+    SUNKEN  = { art = HOMES .. "DrownedCityHome", artCoord = { 0, 1, 0.12, 0.88 } },
+    KROLDOK = { art = HOMES .. "KroldokHome", artCoord = { 0, 1, 0.12, 0.88 } },
+    ALCAZ   = { art = HOMES .. "AlcazPrisonHome", artCoord = { 0, 1, 0.12, 0.88 } },
+    NOIREG  = { art = HOMES .. "BlackmawHoldHome", artCoord = { 0, 1, 0.12, 0.88 } },
+    SHAPER  = { art = HOMES .. "ShapersTerraceHome", artCoord = { 0, 1, 0.12, 0.88 } },
     -- Scarlet Monastery: one instance, one map per wing (to verify at launch)
     SMGY    = { art = LS .. "LoadScreenScarletMonastery2", wingMap = 302 },
     SMLIB   = { art = LS .. "LoadScreenScarletMonastery2", wingMap = 303 },

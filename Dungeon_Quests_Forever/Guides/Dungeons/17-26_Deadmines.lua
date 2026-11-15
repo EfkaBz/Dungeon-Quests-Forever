@@ -13,8 +13,8 @@ local function AL(extra) local t = extra or {}; t.faction = "Alliance"; return t
 
 -- NPCs (map = uiMapID: 1436 Westfall, 1433 Redridge, 1453 Stormwind)
 N.gryan      = { id = 234,  name = "Gryan Stoutmantle",   map = 1436, x = 56.3, y = 47.5 }
-N.wiley      = { id = 266,  name = "Wiley the Black",     map = 1433, x = 26.5, y = 45.4 }
-N.shaw       = { id = 332,  name = "Master Mathias Shaw", map = 1453, x = 75.8, y = 59.8 }
+N.wiley      = { id = 266,  name = "Wiley the Black",     map = 1433, x = 21.4, y = 45.4 }
+N.shaw       = { id = 332,  name = "Master Mathias Shaw", map = 1453, x = 78.3, y = 70.7 }
 N.traitor    = { id = 467,  name = "The Defias Traitor",  map = 1436, x = 55.7, y = 47.5 }
 N.riell      = { id = 820,  name = "Scout Riell",         map = 1436, x = 56.7, y = 47.4 }
 N.wilder     = { id = 656,  name = "Wilder Thistlenettle", map = 1453, x = 66.8, y = 43.8, forever = true }

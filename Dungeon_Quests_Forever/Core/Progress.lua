@@ -131,6 +131,10 @@ function P.IsAutoDone(step)
         end
         return false
     end
+    -- "pick one of these quests": any of `doneBy` counts as this one
+    for _, q in ipairs(step.doneBy or {}) do
+        if P.IsAutoDone({ type = step.type, quest = q, objIndex = step.objIndex }) then return true end
+    end
     local st = P.QuestState(step.quest)
     if st == 3 then return true end
     if step.type == "accept" then return st >= 1 end

@@ -65,9 +65,9 @@ ns:RegisterDungeon("KROLDOK", function() return {
     },
     steps = {
         -- Quests to pick up before the dungeon (and their pre-quests)
-        A(94483, nil, { faction = "Horde", text = L("Riverglades (giver not known yet)", "Riverglades (giver not known yet)") }),
+        A(94483, "ql_krom_rosh", { faction = "Horde" }),
         D(94483, L("Slay 8 Farholde Priests and 12 Farholde Scouts south of the river.", "Slay 8 Farholde Priests and 12 Farholde Scouts south of the river."), { faction = "Horde" }),
-        T(94483, nil, { faction = "Horde", text = L("Riverglades (not known yet)", "Riverglades (not known yet)") }),
+        T(94483, "ql_krom_rosh", { faction = "Horde" }),
         A(94672, "ql_tran_gul", { faction = "Horde" }),
         D(94672, L("Defeat 8 Twilight Raiders, 8 Twilight Shadowmancers and 8 Twilight Neophytes within Sunnyglade for Tran'gul in Rog'mar.", "Defeat 8 Twilight Raiders, 8 Twilight Shadowmancers and 8 Twilight Neophytes within Sunnyglade for Tran'gul in Rog'mar."), { faction = "Horde", map = 2548, x = 59.4, y = 44.0 }),
         T(94672, "ql_tran_gul", { faction = "Horde" }),

@@ -9,11 +9,141 @@ local function Flagged(q)
     return IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(q)
 end
 
-function P.LogIndex(q)
-    local i
-    if GetQuestLogIndexByID then i = GetQuestLogIndexByID(q)
-    elseif C_QuestLog and C_QuestLog.GetLogIndexForQuestID then i = C_QuestLog.GetLogIndexForQuestID(q) end
+----------------------------------------------------------------------
+-- Finding a guide quest in the quest log
+-- 1. by its ID, with every API (the old GetQuestLogIndexByID misses the
+--    quests under a collapsed header, so the whole log is read too);
+-- 2. else by its title: the quest in the log may have another ID than the
+--    guide (Forever IDs, class or faction variants). The real ID is kept
+--    (DQF_DB.questAlias) so accept, objectives and turn-in all use it.
+--    A log quest that is itself a step of the player's guides is never
+--    borrowed (chains whose quests share one title, e.g. Defias Brotherhood).
+----------------------------------------------------------------------
+local function Try(fn, ...)
+    if not fn then return end
+    local ok, a = pcall(fn, ...)
+    if ok then return a end
+end
+
+local function Norm(s)
+    if type(s) ~= "string" then return end
+    s = s:lower():gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("[%p%s]", "")
+    return s ~= "" and s or nil
+end
+
+-- every quest of the log: { {index, id, title, norm}, ... } (read once per frame)
+local logList, logStamp
+local function ScanLog()
+    local now = GetTime()
+    if logList and logStamp == now then return logList end
+    local t = {}
+    if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo then
+        for i = 1, Try(C_QuestLog.GetNumQuestLogEntries) or 0 do
+            local info = Try(C_QuestLog.GetInfo, i)
+            if info and not info.isHeader and info.questID and info.questID > 0 then
+                t[#t + 1] = { index = i, id = info.questID, title = info.title, norm = Norm(info.title) }
+            end
+        end
+    end
+    if #t == 0 and GetNumQuestLogEntries and GetQuestLogTitle then
+        for i = 1, (GetNumQuestLogEntries()) or 0 do
+            local title, _, _, isHeader, _, _, _, id = GetQuestLogTitle(i)
+            if title and not isHeader and id and id > 0 then
+                t[#t + 1] = { index = i, id = id, title = title, norm = Norm(title) }
+            end
+        end
+    end
+    logList, logStamp = t, now
+    return t
+end
+
+local function RawIndex(q)
+    local i = Try(GetQuestLogIndexByID, q)
     if i and i > 0 then return i end
+    i = Try(C_QuestLog and C_QuestLog.GetLogIndexForQuestID, q)
+    if i and i > 0 then return i end
+    for _, e in ipairs(ScanLog()) do
+        if e.id == q then return e.index end
+    end
+end
+
+local function Aliases()
+    if not DQF_DB then return {} end
+    DQF_DB.questAlias = DQF_DB.questAlias or {}
+    return DQF_DB.questAlias
+end
+
+-- quest IDs that have a step this character can see (rebuilt when needed)
+local mine
+local function MyGuideQuests()
+    if mine then return mine end
+    local faction = UnitFactionGroup("player")
+    local _, class = UnitClass("player")
+    local t, any = {}, false
+    for _, d in pairs(ns.dungeons or {}) do
+        for _, s in ipairs(d.steps or {}) do
+            any = true
+            if type(s.quest) == "number" and s.quest > 0 and not s.doneBy
+                and (not s.faction or s.faction == faction) and (not s.class or s.class == class) then
+                t[s.quest] = true
+            end
+        end
+    end
+    if any and faction then mine = t end
+    return t
+end
+
+local function GuideTitles(q)
+    local out = {}
+    local t = Try(C_QuestLog and C_QuestLog.GetTitleForQuestID, q)
+    if t then out[#out + 1] = Norm(t) end
+    for _, d in pairs(ns.dungeons or {}) do
+        if d.titles and d.titles[q] then out[#out + 1] = Norm(d.titles[q]) end
+    end
+    if ns.QUEST_NAMES and ns.QUEST_NAMES[q] then out[#out + 1] = Norm(ns.QUEST_NAMES[q]) end
+    return out
+end
+
+local resolved, resolvedStamp = {}, nil
+-- the quest ID the game really uses for the guide quest q
+function P.Resolve(q)
+    if type(q) ~= "number" or q <= 0 then return q end
+    local now = GetTime()
+    if resolvedStamp ~= now then resolved, resolvedStamp = {}, now end
+    if resolved[q] then return resolved[q] end
+    local r = q
+    if not RawIndex(q) then
+        local alias = Aliases()[q]
+        if alias and RawIndex(alias) then
+            r = alias
+        else
+            local found
+            local names = GuideTitles(q)
+            if #names > 0 then
+                local own = MyGuideQuests()
+                for _, e in ipairs(ScanLog()) do
+                    if e.norm and not own[e.id] then
+                        for _, n in ipairs(names) do
+                            if n == e.norm then found = e.id break end
+                        end
+                    end
+                    if found then break end
+                end
+            end
+            if found then
+                Aliases()[q] = found
+                r = found
+            elseif alias then
+                r = alias -- turned in since: keep checking the real ID
+            end
+        end
+    end
+    resolved[q] = r
+    return r
+end
+
+function P.LogIndex(q)
+    return RawIndex(P.Resolve(q))
 end
 
 -- Forever runs on the retail engine: the old quest log functions (GetQuestLogTitle,
@@ -28,7 +158,7 @@ function P.SelectInLog(q)
     end
     if i and C_QuestLog and C_QuestLog.SetSelectedQuest then
         local prev = C_QuestLog.GetSelectedQuest and C_QuestLog.GetSelectedQuest()
-        C_QuestLog.SetSelectedQuest(q)
+        C_QuestLog.SetSelectedQuest(P.Resolve(q))
         return function() C_QuestLog.SetSelectedQuest(prev or 0) end
     end
     return function() end
@@ -60,6 +190,8 @@ end
 -- Turned in (flagged by the server, or implied by a later quest of the chain)
 function P.IsCompleted(q, depth)
     if Flagged(q) then return true end
+    local alias = Aliases()[q]
+    if alias and Flagged(alias) then return true end
     depth = depth or 0
     if depth > 6 then return false end
     for f in pairs(Followers()[q] or {}) do
@@ -72,7 +204,7 @@ function P.ObjectivesDone(q)
     local i = P.LogIndex(q)
     if not i then return false end
     if C_QuestLog and C_QuestLog.IsComplete then
-        local ok, done = pcall(C_QuestLog.IsComplete, q)
+        local ok, done = pcall(C_QuestLog.IsComplete, P.Resolve(q))
         if ok and done then return true end
     end
     -- Classic: GetQuestLogTitle -> title, level, tag, isHeader, isCollapsed, isComplete, ...
@@ -100,7 +232,7 @@ function P.Objectives(q)
             if text then t[#t + 1] = { text = text, done = finished } end
         end
     elseif C_QuestLog and C_QuestLog.GetQuestObjectives then
-        for _, o in ipairs(C_QuestLog.GetQuestObjectives(q) or {}) do
+        for _, o in ipairs(C_QuestLog.GetQuestObjectives(P.Resolve(q)) or {}) do
             if o.text then t[#t + 1] = { text = o.text, done = o.finished } end
         end
     end

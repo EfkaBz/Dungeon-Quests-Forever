@@ -1,5 +1,5 @@
 local ADDON, ns = ...
-ns.VERSION = "0.3.28"
+ns.VERSION = "0.3.29"
 ns.dungeons, ns.dungeonOrder, ns.NPCS = {}, {}, {}
 -- Language functions (ns.L, ns.Lang, ns.IsFR...) live in Core\Locale.lua.
 -- Saved variables are only available after ADDON_LOADED, so every text

@@ -93,23 +93,65 @@ local function MyGuideQuests()
     return t
 end
 
+-- titles of the guide data per quest, normalized once (they never change):
+-- looping over every dungeon for every quest at each update was slow
+local dataTitles
+local function DataTitles(q)
+    if not dataTitles then
+        if not next(ns.dungeons or {}) then return {} end -- data not built yet
+        dataTitles = {}
+        local function Add(id, title)
+            local n = Norm(title)
+            if not n then return end
+            dataTitles[id] = dataTitles[id] or {}
+            table.insert(dataTitles[id], n)
+        end
+        for _, d in pairs(ns.dungeons) do
+            for id, title in pairs(d.titles or {}) do Add(id, title) end
+        end
+        for id, title in pairs(ns.QUEST_NAMES or {}) do Add(id, title) end
+    end
+    return dataTitles[q] or {}
+end
+
 local function GuideTitles(q)
     local out = {}
     local t = Try(C_QuestLog and C_QuestLog.GetTitleForQuestID, q)
     if t then out[#out + 1] = Norm(t) end
-    for _, d in pairs(ns.dungeons or {}) do
-        if d.titles and d.titles[q] then out[#out + 1] = Norm(d.titles[q]) end
-    end
-    if ns.QUEST_NAMES and ns.QUEST_NAMES[q] then out[#out + 1] = Norm(ns.QUEST_NAMES[q]) end
+    for _, n in ipairs(DataTitles(q)) do out[#out + 1] = n end
     return out
 end
 
-local resolved, resolvedStamp = {}, nil
+-- Results kept while the quest log stays the same: one update asks the same
+-- quests many times (steps, chains, attunements, group sync) and updates
+-- come often (every loot, bag or log event) while the log rarely changes.
+-- Cleared when the log content changes, when a quest is accepted, turned in
+-- or removed, and every few seconds anyway (quest data loaded late, Questie
+-- chains ready).
+local CACHE_MAX_AGE = 10
+local resolved, logIndexes, completed = {}, {}, {}
+local frameStamp, cacheSince, logSignature
+local function ClearCache() resolved, logIndexes, completed, logSignature = {}, {}, {}, nil end
+local function FrameCache()
+    local now = GetTime()
+    if frameStamp == now then return end -- checked once per frame
+    frameStamp = now
+    local parts = {}
+    for _, e in ipairs(ScanLog()) do parts[#parts + 1] = e.index .. ":" .. e.id end
+    local sig = table.concat(parts, ",")
+    if sig ~= logSignature or not cacheSince or now - cacheSince > CACHE_MAX_AGE then
+        ClearCache()
+        logSignature, cacheSince = sig, now
+    end
+end
+for _, e in ipairs({ "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_REMOVED" }) do
+    ns:On(e, function() ClearCache(); frameStamp, logList = nil, nil end)
+end
+
 -- the quest ID the game really uses for the guide quest q
 function P.Resolve(q)
     if type(q) ~= "number" or q <= 0 then return q end
-    local now = GetTime()
-    if resolvedStamp ~= now then resolved, resolvedStamp = {}, now end
+    FrameCache()
     if resolved[q] then return resolved[q] end
     local r = q
     if not RawIndex(q) then
@@ -143,7 +185,13 @@ function P.Resolve(q)
 end
 
 function P.LogIndex(q)
-    return RawIndex(P.Resolve(q))
+    FrameCache()
+    local i = logIndexes[q]
+    if i == nil then
+        i = RawIndex(P.Resolve(q)) or false
+        logIndexes[q] = i
+    end
+    return i or nil
 end
 
 -- Forever runs on the retail engine: the old quest log functions (GetQuestLogTitle,
@@ -188,16 +236,25 @@ local function Followers()
 end
 
 -- Turned in (flagged by the server, or implied by a later quest of the chain)
+-- (kept for the frame: "true" at any depth, "false" only from the top, as a
+-- deeper search may have been cut by the depth limit)
 function P.IsCompleted(q, depth)
-    if Flagged(q) then return true end
-    local alias = Aliases()[q]
-    if alias and Flagged(alias) then return true end
-    depth = depth or 0
-    if depth > 6 then return false end
-    for f in pairs(Followers()[q] or {}) do
-        if P.LogIndex(f) or P.IsCompleted(f, depth + 1) then return true end
+    FrameCache()
+    local known = completed[q]
+    if known ~= nil then return known end
+    local done = false
+    if Flagged(q) then done = true
+    else
+        local alias = Aliases()[q]
+        if alias and Flagged(alias) then done = true
+        elseif (depth or 0) <= 6 then
+            for f in pairs(Followers()[q] or {}) do
+                if P.LogIndex(f) or P.IsCompleted(f, (depth or 0) + 1) then done = true break end
+            end
+        end
     end
-    return false
+    if done or not depth or depth == 0 then completed[q] = done end
+    return done
 end
 
 function P.ObjectivesDone(q)

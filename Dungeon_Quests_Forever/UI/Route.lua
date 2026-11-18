@@ -213,6 +213,6 @@ function R:Init()
         s.e = s.e + e
         if s.e < 0.5 then return end
         s.e = 0
-        R:Tick()
+        ns.Timed("Route:Tick", R.Tick, R)
     end)
 end

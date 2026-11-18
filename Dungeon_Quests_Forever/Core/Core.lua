@@ -1,5 +1,5 @@
 local ADDON, ns = ...
-ns.VERSION = "0.3.29"
+ns.VERSION = "0.3.30"
 ns.dungeons, ns.dungeonOrder, ns.NPCS = {}, {}, {}
 -- Language functions (ns.L, ns.Lang, ns.IsFR...) live in Core\Locale.lua.
 -- Saved variables are only available after ADDON_LOADED, so every text
@@ -27,6 +27,49 @@ local CACHE_DEFAULTS = { rewards = {}, bossPos = {}, maps = {}, instances = {} }
 ----------------------------------------------------------------------
 -- Event bus
 ----------------------------------------------------------------------
+----------------------------------------------------------------------
+-- Performance check (/dqf perf): times the event handlers, the module
+-- updates and the timers, prints every call slower than PERF_LIMIT ms and
+-- keeps totals for /dqf perf report. Off by default (no cost then).
+----------------------------------------------------------------------
+local PERF_LIMIT = 5
+local perfOn, perfStats = false, {}
+local function PerfDone(label, t0, ...)
+    local ms = debugprofilestop() - t0
+    local s = perfStats[label]
+    if not s then s = { n = 0, total = 0, max = 0 }; perfStats[label] = s end
+    s.n, s.total = s.n + 1, s.total + ms
+    if ms > s.max then s.max = ms end
+    if ms > PERF_LIMIT then
+        print(("|cff9d7bffDQF perf|r %s: |cffff5555%.1f ms|r"):format(label, ms))
+    end
+    return ...
+end
+function ns.Timed(label, fn, ...)
+    if not perfOn then return fn(...) end
+    return PerfDone(label, debugprofilestop(), fn(...))
+end
+
+local function PerfCommand(arg)
+    if arg == "report" then
+        local list = {}
+        for label, s in pairs(perfStats) do list[#list + 1] = { label = label, s = s } end
+        table.sort(list, function(a, b) return a.s.total > b.s.total end)
+        print("|cff9d7bffDQF perf|r " .. L("total / appels / max :", "total / calls / max:"))
+        for i = 1, math.min(15, #list) do
+            local e = list[i]
+            print(("  %s: %.0f ms / %d / %.1f ms"):format(e.label, e.s.total, e.s.n, e.s.max))
+        end
+    else
+        perfOn = not perfOn
+        if perfOn then perfStats = {} end
+        print("|cff9d7bffDQF perf|r " .. (perfOn
+            and L("activé : chaque appel de plus de 5 ms est affiché. /dqf perf report pour le bilan.",
+                "on: every call over 5 ms is printed. /dqf perf report for the totals.")
+            or L("désactivé.", "off.")))
+    end
+end
+
 local handlers, bus = {}, CreateFrame("Frame")
 function ns:On(event, fn)
     if not handlers[event] then
@@ -36,7 +79,9 @@ function ns:On(event, fn)
     table.insert(handlers[event], fn)
 end
 bus:SetScript("OnEvent", function(_, event, ...)
-    for _, fn in ipairs(handlers[event]) do fn(...) end
+    for i, fn in ipairs(handlers[event]) do
+        if perfOn then ns.Timed(event .. "#" .. i, fn, ...) else fn(...) end
+    end
 end)
 
 ----------------------------------------------------------------------
@@ -222,6 +267,7 @@ local function AttachBosses()
             end
         end
     end
+    if ns.ResetBossNames then ns.ResetBossNames() end
 end
 
 function ns.CurrentDungeon()
@@ -304,28 +350,122 @@ local nameCache = {}
 local scan = CreateFrame("GameTooltip", "DQF_ScanTip", nil, "GameTooltipTemplate")
 local scanAgainAt = 0 -- the game hides tooltip text (secret values) at times: wait, then retry
 
+local bossByName, bossPending -- boss lookup by name (see ns.BossesNamed)
+
 function ns.LearnName(npcID, name)
-    if npcID and name then nameCache[npcID] = name end
+    if npcID and name and nameCache[npcID] ~= name then
+        nameCache[npcID] = name
+        bossByName = nil -- a boss may now be found under this name
+    end
+end
+
+-- Tooltip scans are slow (~0.5 ms each) and lookups loop over every boss of
+-- every dungeon: without limits a single loot / target change could run
+-- hundreds of them (micro-freezes). So: names found are saved per locale,
+-- an NPC that gave nothing is not asked again for a while, and only a few
+-- scans run per frame (the English name is used meanwhile).
+local SCANS_PER_FRAME, RETRY_DELAY = 2, 60
+local triedAt, scansLeft, budgetReset = {}, SCANS_PER_FRAME, false
+
+local function SavedNames()
+    if not DQF_Cache then return end
+    DQF_Cache.npcNames = DQF_Cache.npcNames or {}
+    local loc = GetLocale()
+    DQF_Cache.npcNames[loc] = DQF_Cache.npcNames[loc] or {}
+    return DQF_Cache.npcNames[loc]
 end
 
 function ns.NPCName(npc)
     if not npc then return "?" end
-    if nameCache[npc.id] then return nameCache[npc.id] end
-    if not npc.id or npc.id == 0 then return npc.name end -- no NPC ID: nothing to ask the game
+    local id = npc.id
+    if nameCache[id] then return nameCache[id] end
+    if not id or id == 0 then return npc.name end -- no NPC ID: nothing to ask the game
+    local saved = SavedNames()
+    if saved and saved[id] then nameCache[id] = saved[id]; return saved[id] end
     local clientEN = GetLocale() == "enUS" or GetLocale() == "enGB"
-    if not clientEN and ns.ClientLangMatches() and GetTime() >= scanAgainAt then
-        scan:SetOwner(UIParent, "ANCHOR_NONE")
-        local ok = pcall(scan.SetHyperlink, scan, ("unit:Creature-0-0-0-0-%d-0000000000"):format(npc.id))
-        local line = ok and DQF_ScanTipTextLeft1 and DQF_ScanTipTextLeft1:GetText()
-        scan:Hide()
-        if ns.IsSecret(line) then
-            scanAgainAt = GetTime() + 10
-        elseif line and line ~= "" then
-            nameCache[npc.id] = line
-            return line
-        end
+    if clientEN or not ns.ClientLangMatches() then return npc.name end
+    local now = GetTime()
+    if now < scanAgainAt or (triedAt[id] and now - triedAt[id] < RETRY_DELAY) or scansLeft <= 0 then
+        return npc.name
+    end
+    scansLeft = scansLeft - 1
+    if not budgetReset then
+        budgetReset = true
+        C_Timer.After(0, function() scansLeft, budgetReset = SCANS_PER_FRAME, false end)
+    end
+    triedAt[id] = now
+    scan:SetOwner(UIParent, "ANCHOR_NONE")
+    local ok = pcall(scan.SetHyperlink, scan, ("unit:Creature-0-0-0-0-%d-0000000000"):format(id))
+    local line = ok and DQF_ScanTipTextLeft1 and DQF_ScanTipTextLeft1:GetText()
+    scan:Hide()
+    if ns.IsSecret(line) then
+        scanAgainAt = now + 10
+        triedAt[id] = nil
+    elseif line and line ~= "" then
+        nameCache[id] = line
+        if saved then saved[id] = line end
+        bossByName = nil -- a boss may now be found under this name
+        return line
     end
     return npc.name
+end
+
+-- Boss lookup by name: English name, aliases and the localized names known
+-- so far, built once (and again when a name is learned) instead of looping
+-- over every boss of every dungeon at each loot / target change.
+-- bossByName[name] = { { key = dungeon key, i = boss index, b = boss }, ... }
+-- bossPending = bosses whose localized name is not known yet
+function ns.ResetBossNames() bossByName = nil end
+
+local function KnownName(id)
+    if nameCache[id] then return nameCache[id] end
+    local saved = SavedNames()
+    return saved and saved[id]
+end
+
+local function AddBossName(name, e)
+    if not name or name == "" then return end
+    local list = bossByName[name]
+    if not list then list = {}; bossByName[name] = list end
+    for _, o in ipairs(list) do if o.b == e.b then return end end
+    list[#list + 1] = e
+end
+
+local function BuildBossNames()
+    bossByName, bossPending = {}, {}
+    local loc = GetLocale()
+    local localize = loc ~= "enUS" and loc ~= "enGB" and ns.ClientLangMatches()
+    for _, key in ipairs(ns.dungeonOrder) do
+        local d = ns.dungeons[key]
+        for i, b in ipairs(d and d.bossInfo and d.bossInfo.bosses or {}) do
+            local e = { key = key, i = i, b = b }
+            AddBossName(b.name, e)
+            for _, a in ipairs(b.aliases or {}) do AddBossName(a, e) end
+            if b.npcID and b.npcID ~= 0 and not b.extra then
+                local known = KnownName(b.npcID)
+                if known then AddBossName(known, e)
+                elseif localize then bossPending[#bossPending + 1] = e end
+            end
+        end
+    end
+end
+
+-- Bosses of this name (list of { key, i, b }), or nil
+function ns.BossesNamed(name)
+    if not name or ns.IsSecret(name) then return end
+    if not bossByName then BuildBossNames() end
+    local list = bossByName[name]
+    if list then return list end
+    -- localized names not known yet: ask the game, within the scan budget
+    local pending, now = bossPending, GetTime()
+    for _, e in ipairs(pending) do
+        if now < scanAgainAt or scansLeft <= 0 then break end
+        local id = e.b.npcID
+        if not (triedAt[id] and now - triedAt[id] < RETRY_DELAY) and ns.BossName(e.b) == name then break end
+    end
+    -- a name was learned: the lookup was reset
+    if not bossByName then BuildBossNames() end
+    return bossByName[name]
 end
 
 -- The Forever client can return "secret" values (GUIDs, names) that addons
@@ -407,19 +547,32 @@ end
 ns.modules = {}
 function ns:RegisterModule(m) table.insert(self.modules, m) end
 
-function ns.Update(jump)
+-- module name for the performance check (ns.UI, ns.Pins...)
+local function ModuleName(m)
+    if not m.perfName then
+        for k, v in pairs(ns) do if v == m then m.perfName = k break end end
+        m.perfName = m.perfName or "?"
+    end
+    return m.perfName
+end
+
+local function DoUpdate(jump)
     if not DQF_DB then return end
     local d = ns.CurrentDungeon()
-    local done, total, cur = ns.Progress.Evaluate(d)
+    local done, total, cur = ns.Timed("Progress.Evaluate", ns.Progress.Evaluate, d)
     local state = { dungeon = d, done = done, total = total, cur = cur, step = cur and d.list[cur] }
     if ns.state and ns.state.step ~= state.step then jump = true end
     ns.state = state
     for _, m in ipairs(ns.modules) do
         if m.OnUpdate then
-            xpcall(function() m:OnUpdate(state, jump) end, geterrorhandler())
+            xpcall(function()
+                if perfOn then ns.Timed(ModuleName(m) .. ":OnUpdate", m.OnUpdate, m, state, jump)
+                else m:OnUpdate(state, jump) end
+            end, geterrorhandler())
         end
     end
 end
+function ns.Update(jump) ns.Timed("Update", DoUpdate, jump) end
 
 local pending
 function ns.RequestUpdate(delay)
@@ -542,6 +695,7 @@ SlashCmdList.DQF = function(msg)
         local pos = m and C_Map.GetPlayerMapPosition(m, "player")
         print("  player map:", MapText(m), pos and ("%.1f %.1f"):format(pos.x * 100, pos.y * 100) or "")
         if WorldMapFrame and WorldMapFrame:GetMapID() then print("  world map:", MapText(WorldMapFrame:GetMapID())) end
+    elseif msg == "perf" or msg:match("^perf ") then PerfCommand(msg:match("^perf%s+(%S+)"))
     elseif msg == "entrances" or msg == "entrees" then
         DQF_DB.entrancePins = not DQF_DB.entrancePins
         ns.EntrancePins:Refresh()

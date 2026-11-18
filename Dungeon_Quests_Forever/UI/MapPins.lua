@@ -229,7 +229,7 @@ function Pins:Init()
         s.elapsed = s.elapsed + e
         if s.elapsed < 0.1 then return end
         s.elapsed = 0
-        Pins:UpdateMinimap()
+        ns.Timed("Pins:UpdateMinimap", Pins.UpdateMinimap, Pins)
     end)
 end
 

@@ -109,16 +109,13 @@ local BossDungeon
 -- not match the guide name (new Forever dungeons): the instance is then
 -- remembered for the next visits.
 BossDungeon = function(name)
-    if not name or ns.IsSecret(name) then return end
-    for key, d in pairs(ns.dungeons) do
-        for _, b in ipairs(d.bossInfo and d.bossInfo.bosses or {}) do
-            if b.name == name or ns.BossName(b) == name or (b.aliases and tContains(b.aliases, name)) then
-                local _, _, _, _, _, _, _, instanceID = GetInstanceInfo()
-                if instanceID and not d.bossInfo.instance then DQF_Cache.instances[instanceID] = key end
-                return key
-            end
-        end
-    end
+    local list = ns.BossesNamed(name)
+    if not list then return end
+    local key = list[1].key
+    local d = ns.dungeons[key]
+    local _, _, _, _, _, _, _, instanceID = GetInstanceInfo()
+    if instanceID and not d.bossInfo.instance then DQF_Cache.instances[instanceID] = key end
+    return key
 end
 
 -- Boss appearance read from the unit itself (works when its GUID / NPC ID
@@ -151,9 +148,8 @@ end
 
 -- boss index of a dungeon by name (or alias)
 local function BossIndex(d, name)
-    if not name or ns.IsSecret(name) then return end
-    for i, b in ipairs(d.bossInfo and d.bossInfo.bosses or {}) do
-        if b.name == name or ns.BossName(b) == name or (b.aliases and tContains(b.aliases, name)) then return i, b end
+    for _, e in ipairs(ns.BossesNamed(name) or {}) do
+        if e.key == d.key then return e.i, e.b end
     end
 end
 
@@ -172,6 +168,7 @@ local function LearnBoss(unit)
         for i, b in ipairs(d.bossInfo.bosses) do
             if not b.npcID and not b.extra and (name == b.name or name == ns.BossName(b)) then
                 b.npcID = id
+                ns.ResetBossNames() -- its localized name can now be looked up
                 DQF_Cache.npcIDs = DQF_Cache.npcIDs or {}
                 DQF_Cache.npcIDs[key .. ":" .. i] = id
                 if ns.JournalBosses.frame and ns.JournalBosses.frame:IsShown() then ns.JournalBosses:Refresh() end

@@ -553,7 +553,7 @@ function J:OnUpdate()
         if not self.frame:IsShown() then return end
         if self.view == "dungeon" then self:RefreshHeader() end
         local page = self.current and self.pages[self.current]
-        if page and page.Refresh then page:Refresh() end
+        if page and page.Refresh then ns.Timed("Journal:" .. tostring(self.current), page.Refresh, page) end
     end)
 end
 

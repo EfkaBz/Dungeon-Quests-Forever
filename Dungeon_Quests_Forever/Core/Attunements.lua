@@ -91,10 +91,32 @@ function AT.AddAltLines(tip, d)
     end
 end
 
-local pending
+-- Snapshot spread over several frames (one attunement per frame) and never
+-- in combat: evaluating every attunement at once could freeze the game.
+local pending, rec, queue
+local function SaveStep()
+    if InCombatLockdown() then C_Timer.After(2, SaveStep) return end
+    local d = table.remove(queue, 1)
+    if d then
+        local state, done, total = ns.Timed("Attunements:" .. d.key, AT.Status, d)
+        rec.keys[d.key] = { state = state, done = done, total = total }
+        C_Timer.After(0, SaveStep)
+        return
+    end
+    DQF_Cache.attune[CharKey()] = rec
+    pending = false
+end
+
 function AT:OnUpdate()
     -- quest progress changed: save the snapshot a little later (throttled)
-    if pending then return end
+    if pending or not DQF_Cache then return end
     pending = true
-    C_Timer.After(2, function() pending = false; AT.Save() end)
+    C_Timer.After(5, function()
+        DQF_Cache.attune = DQF_Cache.attune or {}
+        local _, class = UnitClass("player")
+        rec = { name = UnitName("player"), realm = GetRealmName and GetRealmName(), class = class,
+            faction = UnitFactionGroup("player"), level = UnitLevel("player"), keys = {} }
+        queue = AT.List()
+        SaveStep()
+    end)
 end

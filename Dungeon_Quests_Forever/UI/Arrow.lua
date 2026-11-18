@@ -73,7 +73,7 @@ function A:Init()
         s.elapsed = s.elapsed + e
         if s.elapsed < 0.05 then return end
         s.elapsed = 0
-        A:Tick()
+        ns.Timed("Arrow:Tick", A.Tick, A)
     end)
     self.frame = f
     f:SetScale(DQF_DB.arrowScale or 1)

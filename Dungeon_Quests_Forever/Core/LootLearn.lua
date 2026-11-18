@@ -15,12 +15,8 @@ local function ItemID(link) return link and not ns.IsSecret(link) and tonumber(l
 -- boss entry (dungeon data) for a boss / encounter name
 local function FindBoss(name)
     -- names of units / encounters can be secret values (not comparable)
-    if not name or ns.IsSecret(name) then return end
-    for _, d in pairs(ns.dungeons) do
-        for _, b in ipairs(d.bossInfo and d.bossInfo.bosses or {}) do
-            if b.name == name or ns.BossName(b) == name or (b.aliases and tContains(b.aliases, name)) then return b end
-        end
-    end
+    local list = ns.BossesNamed(name)
+    return list and list[1].b
 end
 
 local function AddToBoss(b, id)
@@ -72,6 +68,7 @@ end
 
 local function ScanLootWindow()
     local target = UnitExists("target") and UnitIsDead("target") and UnitName("target")
+    local targetBoss, targetLooked -- same for every slot: looked up once, only if needed
     for i = 1, GetNumLootItems() do
         local link = GetLootSlotLink(i)
         local b
@@ -79,7 +76,10 @@ local function ScanLootWindow()
             local guid = GetLootSourceInfo(i)
             b = BossByNpc(ns.NpcIDFromGUID(guid))
         end
-        b = b or FindBoss(target)
+        if not b then
+            if not targetLooked then targetBoss, targetLooked = FindBoss(target), true end
+            b = targetBoss
+        end
         if b then
             Learn(b.name, link)
         elseif IsInInstance() and link and not ns.IsSecret(link) then
@@ -117,5 +117,6 @@ for _, e in ipairs({ "LOOT_HISTORY_UPDATE_DROP", "LOOT_HISTORY_UPDATE_ENCOUNTER"
     pcall(f.RegisterEvent, f, e)
 end
 f:SetScript("OnEvent", function(_, e)
-    if e == "LOOT_OPENED" then ScanLootWindow() else C_Timer.After(0.5, ScanHistory) end
+    if e == "LOOT_OPENED" then ns.Timed("LootLearn:LootWindow", ScanLootWindow)
+    else C_Timer.After(0.5, function() ns.Timed("LootLearn:History", ScanHistory) end) end
 end)

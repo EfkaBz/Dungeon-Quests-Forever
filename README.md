@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <img src=".github/illustrations/0_cover.jpg" alt="Dungeon Quests Forever">
+</p>
+
+<p align="center">
   <a href="#english">English</a> · <a href="#français">Français</a>
 </p>
 
@@ -36,6 +40,23 @@ Dungeon Quests tracks every dungeon quest and pre-quest step by step, with an ar
 - **Six themes:** Midnight, Dark, Horde, Alliance, Gold/Black and Blizzard, with adjustable scale and opacity.
 - **Ten languages:** English, French, German, Spanish, Italian, Portuguese, Russian, Korean, Simplified Chinese and Traditional Chinese. Guide texts that are not translated yet stay in English.
 
+### Screenshots
+
+**Dungeon Home**
+
+<img src=".github/illustrations/1_dungeon_home.jpg" alt="Dungeon Home">
+
+**Step tracker**
+
+<img src=".github/illustrations/2_step_tracker.jpg" alt="Step tracker">
+
+**World guides**
+
+<img src=".github/illustrations/3_over_world.jpg" alt="World guides">
+
+**Options**
+
+<img src=".github/illustrations/4_options.jpg" alt="Options">
 ### Installation
 
 Copy the `Dungeon_Quests_Forever` folder into `Interface\AddOns`, then restart the game or reload your interface.
@@ -116,6 +137,23 @@ Dungeon Quests suit toutes les quêtes et préquêtes de donjon, étape par éta
 - **Six thèmes :** Bleu nuit, Sombre, Horde, Alliance, Or/Noir et Blizzard, avec taille et opacité réglables.
 - **Dix langues :** anglais, français, allemand, espagnol, italien, portugais, russe, coréen, chinois simplifié et chinois traditionnel. Les textes des guides pas encore traduits restent en anglais.
 
+### Captures
+
+**Dungeon Home**
+
+<img src=".github/illustrations/1_dungeon_home.jpg" alt="Dungeon Home">
+
+**Suivi des étapes**
+
+<img src=".github/illustrations/2_step_tracker.jpg" alt="Suivi des étapes">
+
+**Guides du monde**
+
+<img src=".github/illustrations/3_over_world.jpg" alt="Guides du monde">
+
+**Options**
+
+<img src=".github/illustrations/4_options.jpg" alt="Options">
 ### Installation
 
 Copiez le dossier `Dungeon_Quests_Forever` dans `Interface\AddOns`, puis redémarrez le jeu ou rechargez l'interface.

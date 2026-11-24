@@ -208,9 +208,9 @@ ns:RegisterDungeon("SETT05", function()
     Add(Accept(8960, "n16012", Copy(HO)))
     Add(TurnIn(8960, "n16033", AT(BRM, "Mont Rochenoire, près de l'entrée principale côté nord : utiliser le révélateur de fantômes", "Blackrock Mountain, near the main entrance, north side: use the Ghost Revealer", { item = REVEALER })))
     Add(Accept(8961, "n16033", AT(BRM, nil, nil, { item = REVEALER })))
-    Add(Do(8961, L("Incendicite d'Incendius (Profondeurs de Rochenoire), braise du pyrogarde Prophète ardent (Pic Rochenoire supérieur), cendres du duc des cendres (Silithus, invocation du Crépuscule), et un brasero béni (120 po, intendant de l'Aube d'argent, Honoré)",
-        "Incendicite from Lord Incendius (Blackrock Depths), Ember of the Pyroguard Emberseer (Upper Blackrock Spire), Ashes of the Duke of Cinders (Silithus, Twilight summon), and a Blessed Brazier (120 gold, Argent Dawn quartermaster, Honored)"),
-        { map = 1451, x = 37.7, y = 44.8 }))
+    Add(Do(8961, L("Incendicite d'Incendius (Profondeurs de Rochenoire), braise du pyrogarde Prophète ardent (Pic Rochenoire supérieur), cendres d'Asharell (Steppes ardentes, 72.3 68.3), et un brasero béni (120 po, intendant de l'Aube d'argent, Honoré)",
+        "Incendicite from Lord Incendius (Blackrock Depths), Ember of the Pyroguard Emberseer (Upper Blackrock Spire), Ashes of Asharell (Burning Steppes, 72.3 68.3), and a Blessed Brazier (120 gold, Argent Dawn quartermaster, Honored)"),
+        { map = 1428, x = 72.3, y = 68.3 }))
     Add(TurnIn(8961, "n16033", AT(BRM, nil, nil, { item = REVEALER })))
 
     -- Left piece: Bodley offers four components, take ONE (each leads to its own summon)
